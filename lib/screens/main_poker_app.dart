@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 import 'poker_table_screen.dart';
 import 'task_deck_screen.dart';
@@ -65,28 +66,28 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       id: 'tb_morning',
       title: '晨间启动与活力蓄能',
       timeRange: '07:30 - 09:00',
-      icon: Icons.wb_sunny_outlined,
+      icon: LucideIcons.sunrise,
       recommendedCapacity: 5,
     ),
     TimeBlock(
       id: 'tb_deepwork',
       title: '上午黄金心流区 (深度攻坚)',
       timeRange: '09:00 - 12:00',
-      icon: Icons.psychology,
+      icon: LucideIcons.brain,
       recommendedCapacity: 8,
     ),
     TimeBlock(
       id: 'tb_afternoon',
       title: '下午高效推进与执行',
       timeRange: '14:00 - 17:30',
-      icon: Icons.speed_outlined,
+      icon: LucideIcons.gauge,
       recommendedCapacity: 6,
     ),
     TimeBlock(
       id: 'tb_evening',
       title: '晚间复盘与充电休息',
       timeRange: '20:00 - 22:00',
-      icon: Icons.nightlight_outlined,
+      icon: LucideIcons.moon,
       recommendedCapacity: 4,
     ),
   ];
@@ -95,8 +96,8 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
   final List<TaskCard> _tasks = [
     TaskCard(
       id: 't1',
-      title: '完成 Life-Poker 牌桌时间块架构',
-      description: '实现技能卡、任务卡与时间块无缝联动',
+      title: '全面采用 shadcn_ui 极简系统',
+      description: '统一组件规范、微边框质感与纯粹排版',
       suit: CardSuit.spades,
       points: 7,
       requiredSkillId: 'skill_1',
@@ -152,7 +153,6 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     {'title': '快速检查当日核心优先级', 'suit': CardSuit.spades, 'pts': 2},
   ];
 
-  // Logic: Toggle Task completion & reward Skill EXP
   void _toggleTask(TaskCard task) {
     setState(() {
       final idx = _tasks.indexWhere((t) => t.id == task.id);
@@ -160,7 +160,6 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
         final newStatus = !_tasks[idx].isCompleted;
         _tasks[idx] = _tasks[idx].copyWith(isCompleted: newStatus);
 
-        // If completed and linked to a skill, give EXP!
         if (newStatus && task.requiredSkillId != null) {
           final skillIdx =
               _skills.indexWhere((s) => s.id == task.requiredSkillId);
@@ -174,7 +173,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
                 behavior: SnackBarBehavior.floating,
                 content: Text(
                   newLevel > prevLevel
-                      ? '🎉 技能【${_skills[skillIdx].name}】升级到 LV.$newLevel！'
+                      ? '🎉 技能【${_skills[skillIdx].name}】晋升 LV.$newLevel！'
                       : '✨ 技能【${_skills[skillIdx].name}】获得 +${task.points * 10} EXP！',
                 ),
               ),
@@ -225,7 +224,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       _skills.add(skill);
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('已解锁新技能卡牌: ${skill.name}')),
+      SnackBar(content: Text('已解锁新技能手牌: ${skill.name}')),
     );
   }
 
@@ -250,7 +249,6 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     });
   }
 
-  // Hit: Draw a micro-habit task
   void _onHit() {
     final random = Random();
     final item = _hitDeck[random.nextInt(_hitDeck.length)];
@@ -259,7 +257,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       title: item['title'] as String,
       suit: item['suit'] as CardSuit,
       points: item['pts'] as int,
-      scheduledBlockId: 'tb_morning', // default to morning slot
+      scheduledBlockId: 'tb_morning',
     );
     _addTask(newTask);
 
@@ -271,7 +269,6 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     );
   }
 
-  // Stand: Lock in today's commitments
   void _onStand() {
     final totalPts = _tasks
         .where((t) => t.scheduledBlockId != null)
@@ -282,22 +279,22 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       builder: (ctx) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.lock_clock, color: Colors.amber),
+            Icon(LucideIcons.lock, size: 18),
             SizedBox(width: 8),
             Text('牌桌锁定 (Stand)'),
           ],
         ),
         content: Text(
           totalPts > 21
-              ? '今日时间块总点数已达 $totalPts 点，已处于精力超载状态 (Bust)！建议移除部分任务。'
+              ? '今日时间块总点数已达 $totalPts 点，已处于精力超载状态 (Bust)！建议移出部分任务。'
               : totalPts == 21
                   ? '🎉 完美 21 点 (Blackjack)！今日时间块精力配比已臻巅峰黄金比例！'
                   : '今日时间块已规划 $totalPts / 21 点，配比健康充沛，专注打好这手牌吧！',
         ),
         actions: [
-          TextButton(
-            child: const Text('确定'),
+          ShadButton(
             onPressed: () => Navigator.pop(ctx),
+            child: const Text('确定'),
           ),
         ],
       ),
@@ -306,8 +303,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final theme = ShadTheme.of(context);
 
     Widget body;
     switch (_currentTabIndex) {
@@ -343,7 +339,6 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
         break;
       case 3:
       default:
-        // Blackjack & Stats View
         final scheduled = _tasks.where((t) => t.scheduledBlockId != null).toList();
         final totalPts = scheduled.fold<int>(0, (s, t) => s + t.points);
         final completedPts = scheduled
@@ -355,7 +350,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           children: [
             Text(
               '♠️ 21点精力预算机制 (副功能)',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             BlackjackMeter(
@@ -365,24 +360,15 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
               onStand: _onStand,
             ),
             const SizedBox(height: 16),
-            Card(
+            ShadCard(
+              title: const Text('牌桌法则哲学'),
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '牌桌规则哲学',
-                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '1. 时间块即卡槽：将今日任务卡打入对应时间块中，形成出牌组合。\n'
-                      '2. 21点精力上限：打入各时间块的任务点数之和建议保持在 16~21 点，防止精力超载 (Bust)。\n'
-                      '3. 技能协同：任务完成后将自动为绑定的技能卡积累 EXP 经验，推动技能升级！',
-                      style: TextStyle(fontSize: 13, height: 1.6),
-                    ),
-                  ],
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '1. 时间块即卡槽：将今日任务卡打入对应时间块中，形成出牌组合。\n'
+                  '2. 21点精力上限：打入各时间块的任务点数之和建议保持在 16~21 点，防止精力超载 (Bust)。\n'
+                  '3. 技能协同：任务完成后将自动为绑定的技能卡积累 EXP 经验，推动技能升级！',
+                  style: theme.textTheme.muted.copyWith(height: 1.6, fontSize: 13),
                 ),
               ),
             ),
@@ -394,29 +380,27 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.style, size: 20),
-            ),
-            const SizedBox(width: 10),
+            Icon(LucideIcons.spade, size: 20, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
             const Text(
               'Life-Poker',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
+            ),
+            const SizedBox(width: 8),
+            ShadBadge.secondary(
+              child: const Text('shadcn/ui', style: TextStyle(fontSize: 10)),
             ),
           ],
         ),
         actions: [
-          IconButton(
+          ShadIconButton.ghost(
             icon: Icon(
-              widget.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              widget.isDarkMode ? LucideIcons.sun : LucideIcons.moon,
+              size: 18,
             ),
             onPressed: widget.onToggleTheme,
-            tooltip: '切换明暗模式',
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: body,
@@ -425,23 +409,19 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
         onDestinationSelected: (idx) => setState(() => _currentTabIndex = idx),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: Icon(LucideIcons.layoutGrid),
             label: '牌桌时间块',
           ),
           NavigationDestination(
-            icon: Icon(Icons.checklist_rtl_outlined),
-            selectedIcon: Icon(Icons.checklist_rtl),
+            icon: Icon(LucideIcons.listTodo),
             label: '任务卡库',
           ),
           NavigationDestination(
-            icon: Icon(Icons.psychology_outlined),
-            selectedIcon: Icon(Icons.psychology),
+            icon: Icon(LucideIcons.sparkles),
             label: '技能卡组',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bolt_outlined),
-            selectedIcon: Icon(Icons.bolt),
+            icon: Icon(LucideIcons.zap),
             label: '21点精力',
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 
 class TaskDeckScreen extends StatefulWidget {
@@ -38,217 +39,171 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
   }
 
   void _showAddEditDialog(BuildContext context, [TaskCard? editingTask]) {
-    final formKey = GlobalKey<FormState>();
-    String title = editingTask?.title ?? '';
-    String description = editingTask?.description ?? '';
+    final titleCtrl = TextEditingController(text: editingTask?.title ?? '');
+    final descCtrl = TextEditingController(text: editingTask?.description ?? '');
     CardSuit suit = editingTask?.suit ?? CardSuit.spades;
     int points = editingTask?.points ?? 3;
     String? skillId = editingTask?.requiredSkillId;
-    DateTime? dueDate = editingTask?.dueDate;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
+        final theme = ShadTheme.of(ctx);
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 24,
-                right: 24,
+                left: 20,
+                right: 20,
                 top: 20,
               ),
               child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            editingTask != null ? '编辑任务卡牌' : '新增任务卡牌 (Task Card)',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(ctx),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        initialValue: title,
-                        decoration: const InputDecoration(
-                          labelText: '任务名称 *',
-                          hintText: '例如：重构核心逻辑、完成高强度间歇训练',
-                          prefixIcon: Icon(Icons.style),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          editingTask != null ? '编辑任务卡牌' : '新增任务卡牌 (Task Card)',
+                          style: theme.textTheme.h4,
                         ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? '请输入任务名称' : null,
-                        onSaved: (v) => title = v!.trim(),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        initialValue: description,
-                        decoration: const InputDecoration(
-                          labelText: '详细备注与交付标准',
-                          prefixIcon: Icon(Icons.notes),
+                        ShadIconButton.ghost(
+                          icon: const Icon(LucideIcons.x, size: 16),
+                          onPressed: () => Navigator.pop(ctx),
                         ),
-                        maxLines: 2,
-                        onSaved: (v) => description = v?.trim() ?? '',
-                      ),
-                      const SizedBox(height: 16),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text('任务名称 *', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                    const SizedBox(height: 6),
+                    ShadInput(
+                      controller: titleCtrl,
+                      placeholder: const Text('例如：重构核心逻辑、完成间歇训练'),
+                    ),
+                    const SizedBox(height: 14),
+                    Text('详细备注与交付标准', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                    const SizedBox(height: 6),
+                    ShadInput(
+                      controller: descCtrl,
+                      placeholder: const Text('选填：交付目标与细节...'),
+                    ),
+                    const SizedBox(height: 16),
 
-                      // Suit selection
-                      Text(
-                        '任务扑克花色',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                    // Suit selection
+                    Text('选择花色领域', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: CardSuit.values.map((s) {
+                        final isSelected = suit == s;
+                        return isSelected
+                            ? ShadButton(
+                                size: ShadButtonSize.sm,
+                                leading: Icon(s.icon, size: 14),
+                                onPressed: () {},
+                                child: Text('${s.label} (${s.domain})'),
+                              )
+                            : ShadButton.outline(
+                                size: ShadButtonSize.sm,
+                                leading: Icon(s.icon, size: 14, color: s.color),
+                                onPressed: () => setSheetState(() => suit = s),
+                                child: Text('${s.label} (${s.domain})'),
+                              );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Points Slider (1~11)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('精力点数 (Points: 1~11)', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                        ShadBadge.secondary(
+                          child: Text('$points 点', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      value: points.toDouble(),
+                      min: 1,
+                      max: 11,
+                      divisions: 10,
+                      onChanged: (val) {
+                        setSheetState(() => points = val.toInt());
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Link Skill
+                    Text('关联加成技能', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String?>(
+                      initialValue: skillId,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: theme.colorScheme.border),
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: CardSuit.values.map((s) {
-                          final isSelected = suit == s;
-                          return ChoiceChip(
-                            avatar: Text(
-                              s.symbol,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : s.color,
-                                fontWeight: FontWeight.bold,
-                              ),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('无特殊关联技能', style: TextStyle(fontSize: 13)),
+                        ),
+                        ...widget.allSkills.map((s) {
+                          return DropdownMenuItem(
+                            value: s.id,
+                            child: Row(
+                              children: [
+                                Icon(s.suit.icon, size: 14, color: s.suit.color),
+                                const SizedBox(width: 6),
+                                Text('${s.name} (LV.${s.level})', style: const TextStyle(fontSize: 13)),
+                              ],
                             ),
-                            label: Text(s.label),
-                            selected: isSelected,
-                            onSelected: (val) {
-                              if (val) setSheetState(() => suit = s);
-                            },
                           );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 16),
+                        }),
+                      ],
+                      onChanged: (val) => setSheetState(() => skillId = val),
+                    ),
+                    const SizedBox(height: 24),
 
-                      // Points (1~11)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '精力与点数 (Points: 1~11)',
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.amber.shade700),
-                            ),
-                            child: Text(
-                              '$points 点',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.amber.shade900,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Slider(
-                        value: points.toDouble(),
-                        min: 1,
-                        max: 11,
-                        divisions: 10,
-                        onChanged: (val) {
-                          setSheetState(() => points = val.toInt());
-                        },
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Link Skill Card
-                      Text(
-                        '关联加成技能',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String?>(
-                        initialValue: skillId,
-                        decoration: const InputDecoration(
-                          hintText: '选择加成技能（完成后自动增加技能EXP）',
-                          prefixIcon: Icon(Icons.auto_awesome),
-                        ),
-                        items: [
-                          const DropdownMenuItem(
-                            value: null,
-                            child: Text('无特殊关联技能'),
-                          ),
-                          ...widget.allSkills.map((s) {
-                            return DropdownMenuItem(
-                              value: s.id,
-                              child: Row(
-                                children: [
-                                  Text(s.suit.symbol,
-                                      style: TextStyle(color: s.suit.color)),
-                                  const SizedBox(width: 6),
-                                  Text('${s.name} (LV.${s.level})'),
-                                ],
-                              ),
-                            );
-                          }),
-                        ],
-                        onChanged: (val) => setSheetState(() => skillId = val),
-                      ),
-                      const SizedBox(height: 24),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: FilledButton(
-                          child: Text(editingTask != null ? '保存修改' : '放入任务卡库'),
-                          onPressed: () {
-                            if (formKey.currentState?.validate() ?? false) {
-                              formKey.currentState!.save();
-                              final item = editingTask != null
-                                  ? editingTask.copyWith(
-                                      title: title,
-                                      description: description,
-                                      suit: suit,
-                                      points: points,
-                                      requiredSkillId: skillId,
-                                      dueDate: dueDate,
-                                    )
-                                  : TaskCard(
-                                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                                      title: title,
-                                      description: description,
-                                      suit: suit,
-                                      points: points,
-                                      requiredSkillId: skillId,
-                                      dueDate: dueDate,
-                                    );
-                              widget.onAddTask(item);
-                              Navigator.pop(ctx);
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    ShadButton(
+                      width: double.infinity,
+                      onPressed: () {
+                        final text = titleCtrl.text.trim();
+                        if (text.isEmpty) return;
+                        final item = editingTask != null
+                            ? editingTask.copyWith(
+                                title: text,
+                                description: descCtrl.text.trim(),
+                                suit: suit,
+                                points: points,
+                                requiredSkillId: skillId,
+                              )
+                            : TaskCard(
+                                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                title: text,
+                                description: descCtrl.text.trim(),
+                                suit: suit,
+                                points: points,
+                                requiredSkillId: skillId,
+                              );
+                        widget.onAddTask(item);
+                        Navigator.pop(ctx);
+                      },
+                      child: Text(editingTask != null ? '保存修改' : '放入任务卡库'),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
             );
@@ -262,9 +217,10 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
+        final theme = ShadTheme.of(ctx);
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -273,25 +229,19 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '将【${task.title}】打入牌桌时间块：',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  '将【${task.title}】打入时间块：',
+                  style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 ...widget.timeBlocks.map((block) {
                   return ListTile(
-                    leading: Icon(block.icon),
-                    title: Text(block.title),
-                    subtitle: Text(block.timeRange),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                    leading: Icon(block.icon, size: 20),
+                    title: Text(block.title, style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(block.timeRange, style: const TextStyle(fontSize: 12)),
+                    trailing: const Icon(LucideIcons.chevronRight, size: 16),
                     onTap: () {
                       widget.onAssignToBlock(block.id, task);
                       Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('已打入时间块: ${block.title}'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
                     },
                   );
                 }),
@@ -305,8 +255,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final theme = ShadTheme.of(context);
 
     final filtered = widget.tasks.where((t) {
       if (_statusFilter == 1 && t.isCompleted) return false;
@@ -325,84 +274,123 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Search & Filter header
+          // Search Box
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: TextField(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+            child: ShadInput(
               controller: _searchCtrl,
-              decoration: InputDecoration(
-                hintText: '搜索任务卡牌...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _search.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _search = '');
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-              ),
+              placeholder: const Text('搜索任务手牌...'),
+              leading: const Icon(LucideIcons.search, size: 16),
+              trailing: _search.isNotEmpty
+                  ? ShadIconButton.ghost(
+                      icon: const Icon(LucideIcons.x, size: 14),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        setState(() => _search = '');
+                      },
+                    )
+                  : null,
               onChanged: (v) => setState(() => _search = v.trim()),
             ),
           ),
 
-          // Status & Suit Filters
+          // Status Filters
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
               children: [
                 Expanded(
-                  child: SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment(value: 0, label: Text('全部')),
-                      ButtonSegment(value: 1, label: Text('待打出')),
-                      ButtonSegment(value: 2, label: Text('已攻克')),
+                  child: Row(
+                    children: [
+                      _statusFilter == 0
+                          ? ShadButton(
+                              size: ShadButtonSize.sm,
+                              child: const Text('全部'),
+                              onPressed: () {},
+                            )
+                          : ShadButton.ghost(
+                              size: ShadButtonSize.sm,
+                              child: const Text('全部'),
+                              onPressed: () => setState(() => _statusFilter = 0),
+                            ),
+                      const SizedBox(width: 6),
+                      _statusFilter == 1
+                          ? ShadButton(
+                              size: ShadButtonSize.sm,
+                              child: const Text('待打出'),
+                              onPressed: () {},
+                            )
+                          : ShadButton.ghost(
+                              size: ShadButtonSize.sm,
+                              child: const Text('待打出'),
+                              onPressed: () => setState(() => _statusFilter = 1),
+                            ),
+                      const SizedBox(width: 6),
+                      _statusFilter == 2
+                          ? ShadButton(
+                              size: ShadButtonSize.sm,
+                              child: const Text('已攻克'),
+                              onPressed: () {},
+                            )
+                          : ShadButton.ghost(
+                              size: ShadButtonSize.sm,
+                              child: const Text('已攻克'),
+                              onPressed: () => setState(() => _statusFilter = 2),
+                            ),
                     ],
-                    selected: {_statusFilter},
-                    onSelectionChanged: (s) =>
-                        setState(() => _statusFilter = s.first),
                   ),
                 ),
               ],
             ),
           ),
 
-          // Suit chips
+          // Suit Chips
           SizedBox(
-            height: 46,
+            height: 44,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 6),
-                  child: FilterChip(
-                    label: const Text('全花色'),
-                    selected: _suitFilter == null,
-                    onSelected: (s) {
-                      if (s) setState(() => _suitFilter = null);
-                    },
-                  ),
+                  child: _suitFilter == null
+                      ? ShadBadge(child: const Text('全花色'))
+                      : GestureDetector(
+                          onTap: () => setState(() => _suitFilter = null),
+                          child: ShadBadge.outline(child: const Text('全花色')),
+                        ),
                 ),
                 ...CardSuit.values.map((s) {
                   final isSelected = _suitFilter == s;
                   return Padding(
                     padding: const EdgeInsets.only(right: 6),
-                    child: FilterChip(
-                      avatar: Text(
-                        s.symbol,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : s.color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      label: Text(s.label),
-                      selected: isSelected,
-                      onSelected: (val) {
-                        setState(() => _suitFilter = val ? s : null);
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _suitFilter = isSelected ? null : s;
+                        });
                       },
+                      child: isSelected
+                          ? ShadBadge(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(s.symbol),
+                                  const SizedBox(width: 4),
+                                  Text(s.label),
+                                ],
+                              ),
+                            )
+                          : ShadBadge.outline(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(s.symbol, style: TextStyle(color: s.color)),
+                                  const SizedBox(width: 4),
+                                  Text(s.label),
+                                ],
+                              ),
+                            ),
                     ),
                   );
                 }),
@@ -417,20 +405,21 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.inbox_outlined, size: 54, color: Colors.grey),
-                        const SizedBox(height: 12),
-                        const Text('暂无符合条件的手牌'),
+                        Icon(LucideIcons.inbox, size: 40, color: theme.colorScheme.mutedForeground),
+                        const SizedBox(height: 10),
+                        Text('暂无符合条件的手牌', style: theme.textTheme.p),
                         const SizedBox(height: 8),
-                        TextButton.icon(
+                        ShadButton.outline(
+                          size: ShadButtonSize.sm,
+                          leading: const Icon(LucideIcons.plus, size: 14),
                           onPressed: () => _showAddEditDialog(context),
-                          icon: const Icon(Icons.add),
-                          label: const Text('新增任务卡牌'),
+                          child: const Text('新增任务卡牌'),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 80),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
                     itemCount: filtered.length,
                     itemBuilder: (ctx, i) {
                       final task = filtered[i];
@@ -451,127 +440,92 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                                 id: '',
                                 title: '未知时间块',
                                 timeRange: '',
-                                icon: Icons.schedule,
+                                icon: LucideIcons.clock,
                               ),
                             )
                           : null;
 
-                      return Dismissible(
-                        key: Key(task.id),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          color: colorScheme.errorContainer,
-                          child: Icon(Icons.delete, color: colorScheme.onErrorContainer),
-                        ),
-                        onDismissed: (_) => widget.onDeleteTask(task),
-                        child: Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                          elevation: task.isCompleted ? 0 : 1,
-                          color: task.isCompleted
-                              ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-                              : colorScheme.surface,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: () => _showAddEditDialog(context, task),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Checkbox(
-                                    value: task.isCompleted,
-                                    onChanged: (_) => widget.onToggleTask(task),
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ShadCard(
+                          padding: const EdgeInsets.all(12),
+                          title: Row(
+                            children: [
+                              ShadCheckbox(
+                                value: task.isCompleted,
+                                onChanged: (_) => widget.onToggleTask(task),
+                              ),
+                              const SizedBox(width: 8),
+                              ShadBadge.secondary(
+                                child: Text(
+                                  '${task.suit.symbol} ${task.points}点',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: task.suit.color,
                                   ),
-                                  // Suit Badge
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: task.suit.color.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      '${task.suit.symbol} ${task.points}点',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: task.suit.color,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      task.title,
+                                      style: theme.textTheme.p.copyWith(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        decoration: task.isCompleted
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                        color: task.isCompleted
+                                            ? theme.colorScheme.mutedForeground
+                                            : null,
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 10),
-
-                                  // Details
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          task.title,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            decoration: task.isCompleted
-                                                ? TextDecoration.lineThrough
-                                                : null,
-                                          ),
-                                        ),
-                                        if (task.description.isNotEmpty) ...[
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            task.description,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: theme.textTheme.bodySmall?.color
-                                                  ?.withValues(alpha: 0.6),
-                                            ),
-                                          ),
-                                        ],
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            if (task.requiredSkillId != null) ...[
-                                              Icon(Icons.bolt, size: 12, color: task.suit.color),
-                                              Text(
-                                                skill.name,
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: task.suit.color,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                            ],
-                                            if (isScheduled && block != null) ...[
-                                              Icon(Icons.schedule, size: 12, color: Colors.blue.shade700),
-                                              const SizedBox(width: 2),
-                                              Text(
-                                                block.title,
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.blue.shade700,
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  // Assign button
-                                  if (!task.isCompleted && !isScheduled)
-                                    IconButton.filledTonal(
-                                      icon: const Icon(Icons.outbox_rounded, size: 18),
-                                      tooltip: '打入时间块',
-                                      onPressed: () => _showAssignBlockModal(context, task),
-                                    ),
-                                ],
+                                    if (task.description.isNotEmpty) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        task.description,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.muted.copyWith(fontSize: 11),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
-                            ),
+                              if (!task.isCompleted && !isScheduled)
+                                ShadButton.outline(
+                                  size: ShadButtonSize.sm,
+                                  leading: const Icon(LucideIcons.arrowUpRight, size: 14),
+                                  onPressed: () => _showAssignBlockModal(context, task),
+                                  child: const Text('出牌'),
+                                ),
+                              ShadIconButton.ghost(
+                                icon: const Icon(LucideIcons.trash2, size: 14),
+                                onPressed: () => widget.onDeleteTask(task),
+                              ),
+                            ],
+                          ),
+                          description: Row(
+                            children: [
+                              if (task.requiredSkillId != null) ...[
+                                Text(
+                                  '加成: ${skill.name} (LV.${skill.level})',
+                                  style: TextStyle(fontSize: 11, color: task.suit.color),
+                                ),
+                                const SizedBox(width: 10),
+                              ],
+                              if (isScheduled && block != null) ...[
+                                Icon(LucideIcons.clock, size: 12, color: theme.colorScheme.primary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  block.title,
+                                  style: TextStyle(fontSize: 11, color: theme.colorScheme.primary),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       );
@@ -582,7 +536,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddEditDialog(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(LucideIcons.plus),
         label: const Text('新增任务卡'),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class BlackjackMeter extends StatelessWidget {
   final int totalPoints;
@@ -16,39 +17,38 @@ class BlackjackMeter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final theme = ShadTheme.of(context);
 
     // Status calculation
     final bool isBust = totalPoints > 21;
     final bool isBlackjack = totalPoints == 21;
     final bool isOptimal = totalPoints >= 16 && totalPoints <= 20;
 
-    Color statusColor;
     String statusTitle;
     String statusDesc;
     IconData statusIcon;
+    Color statusColor;
 
     if (isBust) {
       statusColor = Colors.redAccent;
       statusTitle = 'Bust! 精力超载 ($totalPoints / 21)';
-      statusDesc = '任务点数已超过21点上限，请减少或推迟部分任务避免耗竭！';
-      statusIcon = Icons.warning_amber_rounded;
+      statusDesc = '任务点数已超过21点上限，请移出部分任务避免耗竭！';
+      statusIcon = LucideIcons.shieldAlert;
     } else if (isBlackjack) {
-      statusColor = Colors.amber.shade700;
+      statusColor = const Color(0xFFF59E0B); // Amber
       statusTitle = 'Blackjack! 完美21点';
-      statusDesc = '今日精力分配臻于极致！稳扎稳打完成这些目标吧！';
-      statusIcon = Icons.military_tech_rounded;
+      statusDesc = '今日精力分配臻于极致，全力冲刺吧！';
+      statusIcon = LucideIcons.flame;
     } else if (isOptimal) {
-      statusColor = Colors.teal;
-      statusTitle = 'In the Zone 绝佳状态 ($totalPoints / 21)';
-      statusDesc = '已接近21点最佳饱和度，准备停牌(Stand)锁定今日目标。';
-      statusIcon = Icons.bolt_rounded;
+      statusColor = const Color(0xFF10B981); // Emerald
+      statusTitle = 'In the Zone 黄金专注 ($totalPoints / 21)';
+      statusDesc = '已处于最佳饱和度，准备停牌(Stand)锁定今日目标。';
+      statusIcon = LucideIcons.zap;
     } else {
-      statusColor = Colors.blue;
+      statusColor = const Color(0xFF3B82F6); // Blue
       statusTitle = 'Safe 活力充足 ($totalPoints / 21)';
-      statusDesc = '精力槽仍有余量，可点击"Hit"抽取微任务或继续添加！';
-      statusIcon = Icons.battery_charging_full_rounded;
+      statusDesc = '精力槽仍有余量，可点击"Hit"抽取微任务或打下手牌！';
+      statusIcon = LucideIcons.shield;
     }
 
     final double progress = (totalPoints / 21.0).clamp(0.0, 1.0);
@@ -56,68 +56,59 @@ class BlackjackMeter extends StatelessWidget {
         ? (completedPoints / totalPoints).clamp(0.0, 1.0)
         : 0.0;
 
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              statusColor.withValues(alpha: 0.12),
-              colorScheme.surface,
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(statusIcon, color: statusColor, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        statusTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: statusColor,
-                        ),
-                      ),
-                      Text(
-                        statusDesc,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Progress Bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 10,
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+    return ShadCard(
+      padding: const EdgeInsets.all(16),
+      title: Row(
+        children: [
+          Icon(statusIcon, size: 20, color: statusColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              statusTitle,
+              style: theme.textTheme.p.copyWith(
+                fontWeight: FontWeight.bold,
+                color: statusColor,
               ),
+            ),
+          ),
+          ShadBadge.outline(
+            child: Text('$totalPoints / 21 PTS'),
+          ),
+        ],
+      ),
+      description: Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(
+          statusDesc,
+          style: theme.textTheme.muted.copyWith(fontSize: 12),
+        ),
+      ),
+      footer: Row(
+        children: [
+          Expanded(
+            child: ShadButton.outline(
+              leading: const Icon(LucideIcons.sparkles, size: 16),
+              onPressed: isBust ? null : onHit,
+              child: const Text('Hit (抽卡加任务)'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ShadButton.secondary(
+              leading: const Icon(LucideIcons.lock, size: 16),
+              onPressed: onStand,
+              child: const Text('Stand (停牌锁定)'),
+            ),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          children: [
+            ShadProgress(
+              value: progress,
+              minHeight: 8,
             ),
             const SizedBox(height: 8),
             Row(
@@ -125,41 +116,13 @@ class BlackjackMeter extends StatelessWidget {
               children: [
                 Text(
                   '已规划点数: $totalPoints 点 (上限21)',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: theme.textTheme.muted.copyWith(fontSize: 11),
                 ),
                 Text(
                   '完成进度: $completedPoints 点 (${(completionRatio * 100).toInt()}%)',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.green.shade700,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
-            // Action Buttons (Hit & Stand)
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: isBust ? null : onHit,
-                    icon: const Icon(Icons.style_outlined, size: 18),
-                    label: const Text('Hit (抽卡加任务)'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: colorScheme.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.tonalIcon(
-                    onPressed: onStand,
-                    icon: const Icon(Icons.lock_clock_outlined, size: 18),
-                    label: const Text('Stand (停牌锁定)'),
+                  style: theme.textTheme.muted.copyWith(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum CardSuit {
-  spades('黑桃', '♠', '技术/心智', Color(0xFF1E293B), Icons.psychology_outlined),
-  hearts('红心', '♥', '健康/活力', Color(0xFFE11D48), Icons.favorite_outline),
-  clubs('梅花', '♣', '学习/创造', Color(0xFF0D9488), Icons.auto_awesome_outlined),
-  diamonds('方块', '♦', '事业/财富', Color(0xFFD97706), Icons.monetization_on_outlined);
+  spades('黑桃', '♠', '技术/心智', Color(0xFF64748B), LucideIcons.spade),
+  hearts('红心', '♥', '健康/活力', Color(0xFFF43F5E), LucideIcons.heart),
+  clubs('梅花', '♣', '学习/创造', Color(0xFF14B8A6), LucideIcons.club),
+  diamonds('方块', '♦', '事业/财富', Color(0xFFF59E0B), LucideIcons.gem);
 
   final String label;
   final String symbol;

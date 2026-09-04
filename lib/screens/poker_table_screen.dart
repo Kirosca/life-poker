@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 import '../widgets/blackjack_meter.dart';
 import '../widgets/time_block_slot.dart';
@@ -26,7 +27,6 @@ class PokerTableScreen extends StatelessWidget {
   });
 
   void _showPlayCardSheet(BuildContext context, TimeBlock block) {
-    // Show tasks that are not yet assigned to any time block
     final availableTasks = allTasks
         .where((t) => t.scheduledBlockId == null && !t.isCompleted)
         .toList();
@@ -36,10 +36,10 @@ class PokerTableScreen extends StatelessWidget {
       isScrollControlled: true,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
-        final theme = Theme.of(ctx);
+        final theme = ShadTheme.of(ctx);
         return Container(
           padding: const EdgeInsets.all(20),
           constraints: BoxConstraints(
@@ -56,20 +56,16 @@ class PokerTableScreen extends StatelessWidget {
                     children: [
                       Text(
                         '出牌：打入时间块',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: theme.textTheme.h4,
                       ),
                       Text(
                         '${block.title} (${block.timeRange})',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
+                        style: theme.textTheme.muted.copyWith(fontSize: 12),
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
+                  ShadIconButton.ghost(
+                    icon: const Icon(LucideIcons.x, size: 16),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
@@ -81,16 +77,13 @@ class PokerTableScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.style_outlined, size: 48, color: Colors.grey),
-                        const SizedBox(height: 12),
-                        const Text('暂无未安排的空闲任务手牌'),
-                        const SizedBox(height: 8),
+                        Icon(LucideIcons.inbox, size: 36, color: theme.colorScheme.mutedForeground),
+                        const SizedBox(height: 10),
+                        Text('暂无未安排的空闲任务手牌', style: theme.textTheme.p),
+                        const SizedBox(height: 4),
                         Text(
-                          '可在“任务卡库”中创建新任务后再出牌',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-                          ),
+                          '可在“任务卡库”中创建新手牌后再打入',
+                          style: theme.textTheme.muted.copyWith(fontSize: 12),
                         ),
                       ],
                     ),
@@ -111,37 +104,47 @@ class PokerTableScreen extends StatelessWidget {
                         ),
                       );
 
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: task.suit.color.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '${task.suit.symbol} ${task.points}点',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: task.suit.color,
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ShadCard(
+                          padding: const EdgeInsets.all(12),
+                          title: Row(
+                            children: [
+                              ShadBadge.secondary(
+                                child: Text(
+                                  '${task.suit.symbol} ${task.points}点',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: task.suit.color,
+                                  ),
+                                ),
                               ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  task.title,
+                                  style: theme.textTheme.p.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              ShadButton.outline(
+                                size: ShadButtonSize.sm,
+                                onPressed: () {
+                                  onAssignTaskToBlock(block.id, task);
+                                  Navigator.pop(ctx);
+                                },
+                                child: const Text('打入'),
+                              ),
+                            ],
+                          ),
+                          description: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              '技能: ${skill.name} · ${task.suit.domain}',
+                              style: theme.textTheme.muted.copyWith(fontSize: 11),
                             ),
-                          ),
-                          title: Text(
-                            task.title,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            '加成技能: ${skill.name} · ${task.suit.domain}',
-                            style: TextStyle(fontSize: 12, color: task.suit.color),
-                          ),
-                          trailing: FilledButton.tonal(
-                            child: const Text('打入'),
-                            onPressed: () {
-                              onAssignTaskToBlock(block.id, task);
-                              Navigator.pop(ctx);
-                            },
                           ),
                         ),
                       );
@@ -157,7 +160,7 @@ class PokerTableScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Total planned points across all scheduled time blocks
+    final theme = ShadTheme.of(context);
     final scheduledTasks = allTasks.where((t) => t.scheduledBlockId != null).toList();
     final totalPoints = scheduledTasks.fold<int>(0, (sum, t) => sum + t.points);
     final completedPoints = scheduledTasks
@@ -167,44 +170,35 @@ class PokerTableScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.only(bottom: 80),
       children: [
-        // Blackjack Energy Meter (as secondary supervisor feature)
-        BlackjackMeter(
-          totalPoints: totalPoints,
-          completedPoints: completedPoints,
-          onHit: onHit,
-          onStand: onStand,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: BlackjackMeter(
+            totalPoints: totalPoints,
+            completedPoints: completedPoints,
+            onHit: onHit,
+            onStand: onStand,
+          ),
         ),
-
         const SizedBox(height: 8),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.dashboard_customize_outlined, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    '今日牌桌时间块 (Time-Boxing)',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ],
+              Text(
+                '今日牌桌时间块 (Time-Boxing)',
+                style: theme.textTheme.p.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
-                '共 ${timeBlocks.length} 个卡槽',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                '共 ${timeBlocks.length} 个槽位',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
               ),
             ],
           ),
         ),
         const SizedBox(height: 4),
-
-        // Time block slots
         ...timeBlocks.map((block) {
           final blockTasks = allTasks
               .where((t) => t.scheduledBlockId == block.id)
