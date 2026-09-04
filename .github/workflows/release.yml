@@ -1,4 +1,4 @@
-name: Release Life-Blackjack
+name: Release Life-Poker
 
 on:
   push:
@@ -38,13 +38,13 @@ jobs:
       - name: Prepare APK Asset
         run: |
           mkdir -p release-assets
-          cp build/app/outputs/flutter-apk/app-release.apk release-assets/life-blackjack-android-${{ github.ref_name }}.apk
+          cp build/app/outputs/flutter-apk/app-release.apk release-assets/life-poker-android-${{ github.ref_name }}.apk
 
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: release-assets/life-blackjack-android-${{ github.ref_name }}.apk
+          path: release-assets/life-poker-android-${{ github.ref_name }}.apk
 
   build-windows:
     name: Build Windows Desktop
@@ -69,13 +69,13 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release-assets -Force
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "release-assets\life-blackjack-windows-${{ github.ref_name }}.zip" -Force
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "release-assets\life-poker-windows-${{ github.ref_name }}.zip" -Force
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-zip
-          path: release-assets/life-blackjack-windows-${{ github.ref_name }}.zip
+          path: release-assets/life-poker-windows-${{ github.ref_name }}.zip
 
   build-web:
     name: Build Web App
@@ -99,13 +99,13 @@ jobs:
       - name: Package Web App
         run: |
           mkdir -p release-assets
-          cd build/web && zip -r ../../release-assets/life-blackjack-web-${{ github.ref_name }}.zip .
+          cd build/web && zip -r ../../release-assets/life-poker-web-${{ github.ref_name }}.zip .
 
       - name: Upload Web Artifact
         uses: actions/upload-artifact@v4
         with:
           name: web-zip
-          path: release-assets/life-blackjack-web-${{ github.ref_name }}.zip
+          path: release-assets/life-poker-web-${{ github.ref_name }}.zip
 
   publish-release:
     name: Publish GitHub Release
