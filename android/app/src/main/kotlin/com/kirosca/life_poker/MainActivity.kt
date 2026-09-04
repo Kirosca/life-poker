@@ -1,4 +1,4 @@
-package com.kirosca.life_blackjack
+package com.kirosca.life_poker
 
 import io.flutter.embedding.android.FlutterActivity
 

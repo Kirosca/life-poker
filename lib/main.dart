@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'screens/todo_home_screen.dart';
+import 'screens/main_poker_app.dart';
 import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const LifeBlackjackApp());
+  runApp(const LifePokerApp());
 }
 
-class LifeBlackjackApp extends StatefulWidget {
-  const LifeBlackjackApp({super.key});
+class LifePokerApp extends StatefulWidget {
+  const LifePokerApp({super.key});
 
   @override
-  State<LifeBlackjackApp> createState() => _LifeBlackjackAppState();
+  State<LifePokerApp> createState() => _LifePokerAppState();
 }
 
-class _LifeBlackjackAppState extends State<LifeBlackjackApp> {
+class _LifePokerAppState extends State<LifePokerApp> {
   ThemeMode _themeMode = ThemeMode.light;
 
   void _toggleTheme() {
@@ -27,12 +27,12 @@ class _LifeBlackjackAppState extends State<LifeBlackjackApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Life-Blackjack Todo',
+      title: 'Life-Poker: 个人技能与时间块卡牌管理',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
-      home: TodoHomeScreen(
+      home: MainPokerAppScreen(
         onToggleTheme: _toggleTheme,
         isDarkMode: _themeMode == ThemeMode.dark,
       ),

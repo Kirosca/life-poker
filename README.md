@@ -1,89 +1,74 @@
-# ♠️ Life-Blackjack (生命21点) - Flutter Material 3 Todo Demo
+# ♠️ Life-Poker (人生扑克) - 个人技能与时间块卡牌管理系统
 
-基于 **Flutter** 与 **Material Design 3 (Material You)** 打造的高颜值游戏化待办任务管理应用。
+基于 **Flutter** 与 **Material Design 3 (Material You)** 构建的卡牌化个人成长与时间块日程管理应用。
 
----
-
-## 🌟 核心特色 (Key Features)
-
-### 1. 🎨 Material Design 3 现代美学
-- **动态色彩与规范**：基于 `ColorScheme.fromSeed` 的动态质感配色，完整适配浅色 (Light) / 深色 (Dark) 主题。
-- **现代化组件质感**：采用圆角卡片 (`CardThemeData`)、浮动操作按钮 (`FloatingActionButton.extended`)、过滤标签 (`FilterChip`)、分段按钮 (`SegmentedButton`) 和 Material 3 底部动作抽屉 (`showModalBottomSheet`)。
-- **流畅动效与手势交互**：支持左滑侧滑删除 (`Dismissible`)、划线完成动画及撤销 SnackBar。
-
-### 2. 🃏 独特的“生命21点 (Life-Blackjack)”精力管理哲学
-- **精力容量上限 (21 点)**：将每天的心智精力设定为 21 点上限。每个待办任务被赋予 1~11 点不同的精力消耗：
-  - `1 ~ 3 点`：微习惯与轻量任务（喝水、整理桌面、伸展）
-  - `4 ~ 7 点`：日常核心任务（代码设计、运动、阅读）
-  - `8 ~ 11 点`：高能攻坚任务（重大发布、深度攻克难题）
-- **状态看板 (Blackjack Meter)**：
-  - 🟢 **Safe (活力充足)**：精力槽尚有余量，精力充沛。
-  - 🟡 **In the Zone (黄金专注)**：规划处于 16~20 点，最佳心流饱和度。
-  - 👑 **Blackjack (完美21点)**：精力分配达到巅峰黄金比例。
-  - 🔴 **Bust (精力超载)**：超过 21 点警报，提醒用户拒绝内耗，精简任务。
-- **抽卡加任务 (Hit)**：精力富余时，一键从微习惯牌堆抽取健康小任务。
-- **停牌锁定 (Stand)**：一键锁定今日任务清单，开启沉浸专注模式。
-
-### 3. 🔍 强大的任务组织与统计
-- **即时搜索**：支持按任务标题及备注关键字模糊过滤。
-- **状态 & 分类过滤**：全部 / 未完成 / 已完成，支持工作、生活、学习、健康、休闲等分类标签。
-- **精力看板与数据统计**：可视化展示待办总数、完成率、各分类占比以及已消耗的精力点数。
+> *"Life is not about holding good cards, but playing a poor hand well."*  
+> 人生不在于拿到一手好牌，而在于打好你手中的牌。
 
 ---
 
-## 📱 核心架构 (Project Architecture)
+## 🌟 核心特色 (Core Features)
+
+### 1. 🃏 扑克化技能与手牌体系 (Skill Deck & Hand Management)
+- **四大扑克花色领域**：
+  - ♠️ **黑桃 (Spades)**：心智 / 技术深度（编程、算法、逻辑推理）
+  - ♥️ **红心 (Hearts)**：健康 / 身心活力（运动健身、睡眠恢复、社交连接）
+  - ♣️ **梅花 (Clubs)**：认知 / 探索创造（阅读深度、写作表达、艺术灵感）
+  - ♦️ **方块 (Diamonds)**：事业 / 生产交付（商业落地、财富管理、日常工作）
+- **技能卡成长系统**：每项技能拥有独立的等级 (Level)、经验条 (EXP) 与熟练度，攻克关联任务或专项研习即可获得 EXP 晋升。
+
+### 2. ⏳ 牌桌时间块 (Time-Boxing Slots)
+- **时间块即出牌槽位**：将一天划分为若干核心卡槽（如晨间蓄能、上午深度心流、下午高效推进、晚间复盘）。
+- **出牌机制 (Play Card)**：从任务卡库中挑选任务卡打入对应时间块槽位，形成今日协同手牌组合。
+- **经验联动机制**：在时间块内攻克任务，自动触发关联技能卡牌的经验升级动效。
+
+### 3. ⚡ 21点精力预算机制 (Blackjack Mode - 副功能)
+- **精力容量上限 (21 点)**：监控每日打入时间块的所有任务总点数（每张卡牌消耗 1~11 点）。
+- **实时四态指示**：
+  - 🟢 **Safe (活力充沛)**：槽位点数健康，余量充裕。
+  - 🟡 **In the Zone (黄金心流)**：规划在 16~20 点，最佳饱和度。
+  - 👑 **Blackjack (完美21点)**：精力与任务分配达到巅峰黄金比例。
+  - 🔴 **Bust (精力超载警报)**：点数超过 21 点，提醒精简任务、避免精神内耗。
+- **抽卡加任务 (Hit)**：精力富余时，一键从微习惯牌堆抽取健康微任务。
+- **停牌锁定 (Stand)**：一键锁定今日牌桌出牌，开启沉浸专注。
+
+---
+
+## 📱 应用架构 (Architecture)
 
 ```
 lib/
-├── main.dart                  # 应用入口与明暗主题切换管理
+├── main.dart                  # 应用入口与明暗主题管理
 ├── models/
-│   └── todo_item.dart         # TodoItem 数据模型、优先级与分类枚举
+│   └── poker_card.dart        # CardSuit, SkillCard, TaskCard, TimeBlock 核心扑克数据模型
 ├── theme/
-│   └── app_theme.dart         # Material 3 主题配置 (Light & Dark)
+│   └── app_theme.dart         # Material 3 主题系统 (Light & Dark)
 ├── widgets/
-│   ├── blackjack_meter.dart   # 21点精力可视化看板与 Hit/Stand 交互
-│   └── todo_card.dart         # Material 3 任务卡片与侧滑手势组件
+│   ├── blackjack_meter.dart   # 21点精力预算监控器 (副功能)
+│   ├── skill_card_widget.dart # 拟真扑克技能卡牌组件 (带经验条与研习按钮)
+│   └── time_block_slot.dart   # 时间块牌桌卡槽与出牌交互组件
 └── screens/
-    ├── todo_home_screen.dart  # 主页面 (搜索、筛选、牌桌看板、列表)
-    ├── add_edit_todo_sheet.dart # 新增/编辑任务底部抽屉表单
-    └── stats_dialog.dart      # 数据统计与精力分析弹窗
+    ├── main_poker_app.dart    # 主框架 (NavigationBar 四大导航模块)
+    ├── poker_table_screen.dart # 牌桌主日程视图
+    ├── task_deck_screen.dart  # 任务卡库 (筛选、出牌、新增、多花色)
+    └── skill_deck_screen.dart # 技能卡组 (技能等级、研习升级、花色过滤)
 ```
 
 ---
 
-## 🚀 运行与构建 (Getting Started)
+## 🚀 本地运行 (Getting Started)
 
-### 环境依赖
-- **Flutter SDK**: `>= 3.13.0`
-- **Dart SDK**: `>= 3.13.0`
-
-### 本地启动
 ```bash
 # 获取依赖
 flutter pub get
 
-# 启动运行（支持 Windows 桌面、Web、Android、iOS）
+# 启动运行（跨平台支持：Windows 桌面、Web、Android、iOS）
 flutter run
 
 # 运行静态分析与单元测试
 flutter analyze
 flutter test
 ```
-
----
-
-## 🌐 推送至 GitHub (Push to GitHub)
-
-若您要在 GitHub 上管理本项目，只需按以下步骤执行：
-
-1. 在 GitHub 上新建一个名为 `life-blackjack` 的空仓库：  
-   `https://github.com/Kirosca/life-blackjack`
-2. 在终端执行推送命令：
-   ```bash
-   git branch -M main
-   git remote add origin https://github.com/Kirosca/life-blackjack.git
-   git push -u origin main
-   ```
 
 ---
 
