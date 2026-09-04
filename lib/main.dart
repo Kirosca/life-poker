@@ -4,17 +4,17 @@ import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const LifeBackjackApp());
+  runApp(const LifeBlackjackApp());
 }
 
-class LifeBackjackApp extends StatefulWidget {
-  const LifeBackjackApp({super.key});
+class LifeBlackjackApp extends StatefulWidget {
+  const LifeBlackjackApp({super.key});
 
   @override
-  State<LifeBackjackApp> createState() => _LifeBackjackAppState();
+  State<LifeBlackjackApp> createState() => _LifeBlackjackAppState();
 }
 
-class _LifeBackjackAppState extends State<LifeBackjackApp> {
+class _LifeBlackjackAppState extends State<LifeBlackjackApp> {
   ThemeMode _themeMode = ThemeMode.light;
 
   void _toggleTheme() {
@@ -27,7 +27,7 @@ class _LifeBackjackAppState extends State<LifeBackjackApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Life-Backjack Todo',
+      title: 'Life-Blackjack Todo',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

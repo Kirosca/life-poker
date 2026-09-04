@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.kirosca" "\0"
-            VALUE "FileDescription", "life_backjack" "\0"
+            VALUE "FileDescription", "life_blackjack" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "life_backjack" "\0"
+            VALUE "InternalName", "life_blackjack" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.kirosca. All rights reserved." "\0"
-            VALUE "OriginalFilename", "life_backjack.exe" "\0"
-            VALUE "ProductName", "life_backjack" "\0"
+            VALUE "OriginalFilename", "life_blackjack.exe" "\0"
+            VALUE "ProductName", "life_blackjack" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

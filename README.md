@@ -1,4 +1,4 @@
-# ♠️ Life-Backjack (生命21点) - Flutter Material 3 Todo Demo
+# ♠️ Life-Blackjack (生命21点) - Flutter Material 3 Todo Demo
 
 基于 **Flutter** 与 **Material Design 3 (Material You)** 打造的高颜值游戏化待办任务管理应用。
 
@@ -76,12 +76,12 @@ flutter test
 
 若您要在 GitHub 上管理本项目，只需按以下步骤执行：
 
-1. 在 GitHub 上新建一个名为 `life-backjack` 的空仓库：  
-   `https://github.com/Kirosca/life-backjack`
+1. 在 GitHub 上新建一个名为 `life-blackjack` 的空仓库：  
+   `https://github.com/Kirosca/life-blackjack`
 2. 在终端执行推送命令：
    ```bash
    git branch -M main
-   git remote add origin https://github.com/Kirosca/life-backjack.git
+   git remote add origin https://github.com/Kirosca/life-blackjack.git
    git push -u origin main
    ```
 

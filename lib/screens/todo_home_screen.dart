@@ -320,7 +320,7 @@ class _TodoHomeScreenState extends State<TodoHomeScreen> {
                   ),
                   const SizedBox(width: 10),
                   const Text(
-                    'Life-Backjack',
+                    'Life-Blackjack',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
