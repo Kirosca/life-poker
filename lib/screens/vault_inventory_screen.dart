@@ -685,6 +685,34 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
     );
   }
 
+  Widget _buildSelectableChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : const Color(0xFF27272A),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : Colors.white.withAlpha(30),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.black : const Color(0xFFA1A1AA),
+          ),
+        ),
+      ),
+    );
+  }
+
   // 模态框: 绑定资产到技能
   void _openBindSkillModal(InventoryItem asset) {
     showShadDialog(
@@ -824,33 +852,35 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                   },
                 ),
               ],
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('类型', style: TextStyle(fontSize: 12, color: Color(0xFFA1A1AA))),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      ChoiceChip(
-                        label: const Text('日常支出'),
-                        selected: selectedType == TransactionType.expense,
-                        onSelected: (_) => setModalState(() => selectedType = TransactionType.expense),
-                      ),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        label: const Text('收入'),
-                        selected: selectedType == TransactionType.income,
-                        onSelected: (_) => setModalState(() => selectedType = TransactionType.income),
-                      ),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        label: const Text('购置资产'),
-                        selected: selectedType == TransactionType.assetPurchase,
-                        onSelected: (_) => setModalState(() => selectedType = TransactionType.assetPurchase),
-                      ),
-                    ],
-                  ),
+              child: Material(
+                color: Colors.transparent,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('类型', style: TextStyle(fontSize: 12, color: Color(0xFFA1A1AA))),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _buildSelectableChip(
+                          label: '日常支出',
+                          isSelected: selectedType == TransactionType.expense,
+                          onTap: () => setModalState(() => selectedType = TransactionType.expense),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildSelectableChip(
+                          label: '收入',
+                          isSelected: selectedType == TransactionType.income,
+                          onTap: () => setModalState(() => selectedType = TransactionType.income),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildSelectableChip(
+                          label: '购置资产',
+                          isSelected: selectedType == TransactionType.assetPurchase,
+                          onTap: () => setModalState(() => selectedType = TransactionType.assetPurchase),
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 12),
                   const Text('事项名称', style: TextStyle(fontSize: 12, color: Color(0xFFA1A1AA))),
                   const SizedBox(height: 6),
@@ -868,7 +898,8 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                   ),
                 ],
               ),
-            );
+            ),
+          );
           },
         );
       },
@@ -926,28 +957,30 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                   },
                 ),
               ],
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('物品分类', style: TextStyle(fontSize: 12, color: Color(0xFFA1A1AA))),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        ChoiceChip(
-                          label: const Text('🛡️ 固定装备 (资产)'),
-                          selected: itemType == InventoryType.asset,
-                          onSelected: (_) => setModalState(() => itemType = InventoryType.asset),
-                        ),
-                        const SizedBox(width: 8),
-                        ChoiceChip(
-                          label: const Text('🧪 补给耗材 (消耗品)'),
-                          selected: itemType == InventoryType.consumable,
-                          onSelected: (_) => setModalState(() => itemType = InventoryType.consumable),
-                        ),
-                      ],
-                    ),
+              child: Material(
+                color: Colors.transparent,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('物品分类', style: TextStyle(fontSize: 12, color: Color(0xFFA1A1AA))),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _buildSelectableChip(
+                            label: '🛡️ 固定装备 (资产)',
+                            isSelected: itemType == InventoryType.asset,
+                            onTap: () => setModalState(() => itemType = InventoryType.asset),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildSelectableChip(
+                            label: '🧪 补给耗材 (消耗品)',
+                            isSelected: itemType == InventoryType.consumable,
+                            onTap: () => setModalState(() => itemType = InventoryType.consumable),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 12),
                     const Text('物品名称', style: TextStyle(fontSize: 12, color: Color(0xFFA1A1AA))),
                     const SizedBox(height: 6),
@@ -1023,7 +1056,8 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                   ],
                 ),
               ),
-            );
+            ),
+          );
           },
         );
       },
