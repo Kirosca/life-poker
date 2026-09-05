@@ -257,11 +257,28 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                       onPressed: () {
                         final name = nameCtrl.text.trim();
                         if (name.isEmpty) return;
+                        final newId = 'skill_${DateTime.now().millisecondsSinceEpoch}';
                         final newSkill = SkillCard(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          id: newId,
                           name: name,
                           suit: suit,
                           description: descCtrl.text.trim(),
+                          evolutionOptions: [
+                            SkillEvolutionOption(
+                              id: 'evo_${newId}_1',
+                              name: '$name·精深专精',
+                              description: '极致精研$name核心精髓，将${suit.domain}领域的执行效能推向峰值。',
+                              suit: suit,
+                              buffDescription: '攻克${suit.label}事件时获得 +35% 额外 EXP',
+                            ),
+                            SkillEvolutionOption(
+                              id: 'evo_${newId}_2',
+                              name: '$name·跨界融通',
+                              description: '将$name的方法论迁移应用至更广泛的日常自律与多维场景。',
+                              suit: suit,
+                              buffDescription: '全天时间块精力损耗减缓 25%',
+                            ),
+                          ],
                         );
                         widget.onAddSkill(newSkill);
                         Navigator.pop(ctx);
@@ -454,7 +471,7 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
                     gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                       maxCrossAxisExtent: 340,
-                      childAspectRatio: 0.95,
+                      childAspectRatio: 0.72,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),

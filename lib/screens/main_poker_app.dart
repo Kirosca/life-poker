@@ -167,8 +167,19 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     if (mounted) {
       setState(() {
         if (loadedSkills != null && loadedSkills.isNotEmpty) {
-          _skills.clear();
-          _skills.addAll(loadedSkills);
+          for (final ls in loadedSkills) {
+            final existingIdx = _skills.indexWhere((s) => s.id == ls.id);
+            if (existingIdx != -1) {
+              final evoOptions = ls.evolutionOptions.isNotEmpty
+                  ? ls.evolutionOptions
+                  : _skills[existingIdx].evolutionOptions;
+              _skills[existingIdx] = ls.copyWith(
+                evolutionOptions: evoOptions,
+              );
+            } else {
+              _skills.add(ls);
+            }
+          }
         }
         if (loadedSleep != null) {
           _sleepState = loadedSleep;
@@ -345,7 +356,10 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
         _timeBlocks[idx] = _timeBlocks[idx].copyWith(activeSkillId: skillId);
       }
     });
-    final skill = _skills.firstWhere((s) => s.id == skillId);
+    final skill = _skills.firstWhere(
+      (s) => s.id == skillId,
+      orElse: () => _skills.isNotEmpty ? _skills[0] : SkillCard(id: 'default', name: '技能', suit: CardSuit.spades),
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
@@ -507,8 +521,18 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       }
     });
 
-    final asset = _inventoryItems.firstWhere((i) => i.id == assetId);
-    final targetSkill = skillId != null ? _skills.firstWhere((s) => s.id == skillId) : null;
+    final asset = _inventoryItems.firstWhere(
+      (i) => i.id == assetId,
+      orElse: () => _inventoryItems.isNotEmpty
+          ? _inventoryItems[0]
+          : const InventoryItem(id: 'default', name: '装备', description: '', type: InventoryType.asset, icon: LucideIcons.box, value: 0),
+    );
+    final targetSkill = skillId != null
+        ? _skills.firstWhere(
+            (s) => s.id == skillId,
+            orElse: () => _skills.isNotEmpty ? _skills[0] : SkillCard(id: 'default', name: '技能', suit: CardSuit.spades),
+          )
+        : null;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -697,7 +721,17 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
 
   // 睡眠纪律打卡对话框
   void _openSleepDisciplineDialog() {
-    final sleepSkill = _skills.firstWhere((s) => s.isSleepSkill);
+    final sleepSkill = _skills.firstWhere(
+      (s) => s.isSleepSkill,
+      orElse: () => SkillCard(
+        id: 'skill_sleep',
+        name: '睡眠恢复与节律',
+        suit: CardSuit.hearts,
+        level: 4,
+        isSleepSkill: true,
+        sleepDisciplineScore: 92,
+      ),
+    );
     int currentScore = sleepSkill.sleepDisciplineScore;
 
     showDialog(
