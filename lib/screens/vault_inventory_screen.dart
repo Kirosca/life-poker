@@ -703,16 +703,79 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
             mainAxisSize: MainAxisSize.min,
             children: widget.skillCards.map((skill) {
               final isCurrentBound = asset.boundSkillId == skill.id;
-              return ListTile(
-                title: Text('${skill.suit.symbol} ${skill.name} (Lv.${skill.level})'),
-                subtitle: Text(skill.description, maxLines: 1, overflow: TextOverflow.ellipsis),
-                trailing: isCurrentBound
-                    ? const Icon(LucideIcons.check, color: Color(0xFF10B981))
-                    : null,
-                onTap: () {
-                  widget.onBindAssetToSkill(asset.id, skill.id);
-                  Navigator.of(context).pop();
-                },
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: isCurrentBound
+                      ? const Color(0xFF3B82F6).withAlpha(25)
+                      : const Color(0xFF27272A).withAlpha(140),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isCurrentBound
+                        ? const Color(0xFF3B82F6).withAlpha(90)
+                        : Colors.white.withAlpha(20),
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      widget.onBindAssetToSkill(asset.id, skill.id);
+                      Navigator.of(context).pop();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      skill.suit.symbol,
+                                      style: TextStyle(
+                                        color: skill.suit.color,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${skill.name} (Lv.${skill.level})',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (skill.description.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    skill.description,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFFA1A1AA),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          if (isCurrentBound)
+                            const Icon(LucideIcons.check, color: Color(0xFF10B981), size: 18)
+                          else
+                            const Icon(LucideIcons.chevronRight, color: Color(0xFF71717A), size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               );
             }).toList(),
           ),

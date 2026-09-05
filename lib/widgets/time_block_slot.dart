@@ -465,17 +465,43 @@ class TimeBlockSlot extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: available.map((item) {
                     final bool alreadyUsed = block.usedConsumableIds.contains(item.id);
-                    return ListTile(
-                      leading: Icon(item.icon, color: const Color(0xFFFBBF24)),
-                      title: Text(item.name),
-                      subtitle: Text('存量: ${item.quantity} ${item.unit} · ${item.buffEffect ?? "提神增益"}'),
-                      trailing: ShadButton.outline(
-                        size: ShadButtonSize.sm,
-                        child: Text(alreadyUsed ? '再次打出' : '打出使用'),
-                        onPressed: () {
-                          Navigator.of(dialogCtx).pop();
-                          onUseConsumable?.call(item);
-                        },
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF27272A).withAlpha(140),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white.withAlpha(20)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(item.icon, color: const Color(0xFFFBBF24), size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.name,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '存量: ${item.quantity} ${item.unit} · ${item.buffEffect ?? "提神增益"}',
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFFA1A1AA)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ShadButton.outline(
+                            size: ShadButtonSize.sm,
+                            child: Text(alreadyUsed ? '再次打出' : '打出使用'),
+                            onPressed: () {
+                              Navigator.of(dialogCtx).pop();
+                              onUseConsumable?.call(item);
+                            },
+                          ),
+                        ],
                       ),
                     );
                   }).toList(),
