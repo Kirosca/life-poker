@@ -328,15 +328,43 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                 ),
                 const SizedBox(height: 12),
                 ...widget.timeBlocks.map((block) {
-                  return ListTile(
-                    leading: Icon(block.icon, size: 20),
-                    title: Text(block.title, style: const TextStyle(fontSize: 14)),
-                    subtitle: Text(block.timeRange, style: const TextStyle(fontSize: 12)),
-                    trailing: const Icon(LucideIcons.chevronRight, size: 16),
-                    onTap: () {
-                      widget.onAssignToBlock(block.id, event);
-                      Navigator.pop(ctx);
-                    },
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF27272A).withAlpha(140),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white.withAlpha(20)),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () {
+                          widget.onAssignToBlock(block.id, event);
+                          Navigator.pop(ctx);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          child: Row(
+                            children: [
+                              Icon(block.icon, size: 20, color: theme.colorScheme.primary),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(block.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                                    const SizedBox(height: 2),
+                                    Text(block.timeRange, style: const TextStyle(fontSize: 12, color: Color(0xFFA1A1AA))),
+                                  ],
+                                ),
+                              ),
+                              const Icon(LucideIcons.chevronRight, size: 16, color: Color(0xFF71717A)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   );
                 }),
               ],

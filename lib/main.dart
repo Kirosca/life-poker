@@ -26,9 +26,7 @@ class _LifePokerAppState extends State<LifePokerApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ShadApp(
-      title: 'Life-Poker: 个人技能与时间块卡牌管理',
-      debugShowCheckedModeBanner: false,
+    return ShadApp.custom(
       themeMode: _themeMode,
       theme: ShadThemeData(
         brightness: Brightness.light,
@@ -38,10 +36,23 @@ class _LifePokerAppState extends State<LifePokerApp> {
         brightness: Brightness.dark,
         colorScheme: const ShadZincColorScheme.dark(),
       ),
-      home: MainPokerAppScreen(
-        onToggleTheme: _toggleTheme,
-        isDarkMode: _themeMode == ThemeMode.dark,
-      ),
+      appBuilder: (context) {
+        return MaterialApp(
+          title: 'Life-Poker: 个人技能与时间块卡牌管理',
+          debugShowCheckedModeBanner: false,
+          themeMode: _themeMode,
+          theme: ThemeData.light().copyWith(
+            scaffoldBackgroundColor: const Color(0xFF09090B),
+          ),
+          darkTheme: ThemeData.dark().copyWith(
+            scaffoldBackgroundColor: const Color(0xFF09090B),
+          ),
+          home: MainPokerAppScreen(
+            onToggleTheme: _toggleTheme,
+            isDarkMode: _themeMode == ThemeMode.dark,
+          ),
+        );
+      },
     );
   }
 }

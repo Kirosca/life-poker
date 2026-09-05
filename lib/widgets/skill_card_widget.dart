@@ -28,18 +28,24 @@ class SkillCardWidget extends StatelessWidget {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Icon(suit.icon, size: 18, color: suit.color),
-              const SizedBox(width: 6),
-              Text(
-                skill.name,
-                style: theme.textTheme.p.copyWith(
-                  fontWeight: FontWeight.w600,
+          Expanded(
+            child: Row(
+              children: [
+                Icon(suit.icon, size: 18, color: suit.color),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    skill.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.p.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           ShadBadge.secondary(
             child: Text(
               'LV.${skill.level}',
@@ -63,15 +69,15 @@ class SkillCardWidget extends StatelessWidget {
               ),
             )
           : null,
-      footer: onTrain != null
+       footer: onTrain != null
           ? Padding(
               padding: const EdgeInsets.only(top: 12),
               child: ShadButton.outline(
                 width: double.infinity,
                 size: ShadButtonSize.sm,
-                leading: const Icon(LucideIcons.sparkles, size: 14),
+                leading: const Icon(LucideIcons.sparkles, size: 12),
                 onPressed: onTrain,
-                child: const Text('专项研习 (+25 EXP)'),
+                child: const Text('研习 (+25 EXP)', style: TextStyle(fontSize: 11)),
               ),
             )
           : null,
@@ -83,10 +89,14 @@ class SkillCardWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '熟练度 (${suit.domain})',
-                  style: theme.textTheme.muted.copyWith(fontSize: 11),
+                Expanded(
+                  child: Text(
+                    '熟练度 (${suit.domain})',
+                    style: theme.textTheme.muted.copyWith(fontSize: 11),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 4),
                 Text(
                   '${skill.exp}/${skill.maxExp} EXP',
                   style: theme.textTheme.muted.copyWith(
@@ -119,9 +129,13 @@ class SkillCardWidget extends StatelessWidget {
                       children: [
                         Icon(asset.icon, size: 10, color: const Color(0xFF60A5FA)),
                         const SizedBox(width: 4),
-                        Text(
-                          '${asset.name} · ${asset.buffEffect ?? "装备中"}',
-                          style: const TextStyle(fontSize: 10, color: Color(0xFF93C5FD)),
+                        Flexible(
+                          child: Text(
+                            '${asset.name} · ${asset.buffEffect ?? "装备中"}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 10, color: Color(0xFF93C5FD)),
+                          ),
                         ),
                       ],
                     ),

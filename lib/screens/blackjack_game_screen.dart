@@ -152,88 +152,89 @@ class _BlackjackGameScreenState extends State<BlackjackGameScreen> {
         ],
       ),
       body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 600),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              // Dealer Section
-              ShadCard(
-                padding: const EdgeInsets.all(16),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('庄家手牌 (Dealer)', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ShadBadge.outline(
-                      child: Text(_dealerRevealed ? '$dealerTotal 点' : '暗牌 1 张'),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: _dealerHand.isEmpty
-                        ? [const Text('等待发牌...')]
-                        : List.generate(_dealerHand.length, (i) {
-                            if (i == 1 && !_dealerRevealed) {
-                              return _buildCardHidden(theme);
-                            }
-                            return _buildCardWidget(_dealerHand[i]);
-                          }),
+        child: SingleChildScrollView(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Dealer Section
+                ShadCard(
+                  padding: const EdgeInsets.all(16),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('庄家手牌 (Dealer)', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ShadBadge.outline(
+                        child: Text(_dealerRevealed ? '$dealerTotal 点' : '暗牌 1 张'),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-
-              const Spacer(),
-
-              // Game result message
-              if (_gameResult.isNotEmpty) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: _resultColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _resultColor),
-                  ),
-                  child: Text(
-                    _gameResult,
-                    style: TextStyle(
-                      color: _resultColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: _dealerHand.isEmpty
+                          ? [const Text('等待发牌...')]
+                          : List.generate(_dealerHand.length, (i) {
+                              if (i == 1 && !_dealerRevealed) {
+                                return _buildCardHidden(theme);
+                              }
+                              return _buildCardWidget(_dealerHand[i]);
+                            }),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 16),
-              ],
 
-              // Player Section
-              ShadCard(
-                padding: const EdgeInsets.all(16),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('你的手牌 (Player)', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ShadBadge.secondary(
-                      child: Text('$playerTotal 点', style: const TextStyle(fontWeight: FontWeight.bold)),
+                // Game result message
+                if (_gameResult.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _resultColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _resultColor),
                     ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: _playerHand.isEmpty
-                        ? [const Text('点击下方按钮发牌开局')]
-                        : _playerHand.map((c) => _buildCardWidget(c)).toList(),
+                    child: Text(
+                      _gameResult,
+                      style: TextStyle(
+                        color: _resultColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // Player Section
+                ShadCard(
+                  padding: const EdgeInsets.all(16),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('你的手牌 (Player)', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ShadBadge.secondary(
+                        child: Text('$playerTotal 点', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: _playerHand.isEmpty
+                          ? [const Text('点击下方按钮发牌开局')]
+                          : _playerHand.map((c) => _buildCardWidget(c)).toList(),
+                    ),
                   ),
                 ),
-              ),
 
-              const Spacer(),
+                const SizedBox(height: 20),
 
-              // Controls
+                // Controls
               if (!_isPlaying)
                 ShadButton(
                   width: double.infinity,
@@ -266,7 +267,8 @@ class _BlackjackGameScreenState extends State<BlackjackGameScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildCardWidget(_CardModel card) {
