@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 import '../models/inventory_item.dart';
+import '../models/codex_entry.dart';
 import 'poker_table_screen.dart';
 import 'task_deck_screen.dart';
 import 'skill_deck_screen.dart';
 import 'vault_inventory_screen.dart';
+import 'codex_book_screen.dart';
 import 'blackjack_game_screen.dart';
 
 class MainPokerAppScreen extends StatefulWidget {
@@ -29,6 +31,9 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
   final List<InventoryItem> _inventoryItems = DefaultInventoryData.getInitialItems();
   final List<TransactionRecord> _transactions = DefaultInventoryData.getInitialTransactions();
   double _cashBalance = 15800.0;
+
+  // 衣食住行之书 (Phase 3)
+  final List<CodexEntry> _codexEntries = CodexEntry.getInitialEntries();
 
   // 技能卡组 (包含普通技能与特殊睡眠技能卡)
   final List<SkillCard> _skills = [
@@ -397,6 +402,63 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     );
   }
 
+  // ----------------- 衣食住行之书回调 (Phase 3) -----------------
+  void _toggleCodexChecklistItem(String entryId, int itemIndex) {
+    setState(() {
+      final idx = _codexEntries.indexWhere((e) => e.id == entryId);
+      if (idx != -1) {
+        final entry = _codexEntries[idx];
+        final updatedChecked = List<bool>.from(entry.checklistChecked);
+        if (itemIndex < updatedChecked.length) {
+          updatedChecked[itemIndex] = !updatedChecked[itemIndex];
+          _codexEntries[idx] = entry.copyWith(checklistChecked: updatedChecked);
+        }
+      }
+    });
+  }
+
+  void _createEventFromCodex(CodexEntry entry, String taskTitle) {
+    CardSuit suit;
+    switch (entry.domain) {
+      case CodexDomain.clothing:
+        suit = CardSuit.diamonds;
+        break;
+      case CodexDomain.food:
+        suit = CardSuit.hearts;
+        break;
+      case CodexDomain.housing:
+        suit = CardSuit.clubs;
+        break;
+      case CodexDomain.travel:
+        suit = CardSuit.spades;
+        break;
+    }
+
+    final newEvent = EventCard(
+      id: 'event_codex_${DateTime.now().millisecondsSinceEpoch}',
+      title: '【${entry.domain.title}】$taskTitle',
+      suit: suit,
+      points: entry.level == RuleLevel.iron ? 8 : (entry.level == RuleLevel.sop ? 5 : 3),
+      isUrgent: entry.level == RuleLevel.iron,
+      requiredSkillId: entry.relatedSkillId,
+    );
+    setState(() {
+      _events.insert(0, newEvent);
+    });
+  }
+
+  void _addCodexEntry(CodexEntry newEntry) {
+    setState(() {
+      _codexEntries.insert(0, newEntry);
+    });
+  }
+
+  void _deleteCodexEntry(String entryId) {
+    setState(() {
+      _codexEntries.removeWhere((e) => e.id == entryId);
+    });
+  }
+
   // 晚间备战明日 (Nightly Prep) 对话框
   void _openNightlyPrepDialog() {
     final urgentPending = _events.where((e) => e.isUrgent && !e.isCompleted).toList();
@@ -620,6 +682,17 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
         );
         break;
       case 4:
+        body = CodexBookScreen(
+          entries: _codexEntries,
+          allSkills: _skills,
+          allAssets: _inventoryItems.where((i) => i.type == InventoryType.asset).toList(),
+          onToggleChecklistItem: _toggleCodexChecklistItem,
+          onCreateEventFromCodex: _createEventFromCodex,
+          onAddCodexEntry: _addCodexEntry,
+          onDeleteCodexEntry: _deleteCodexEntry,
+        );
+        break;
+      case 5:
       default:
         // 独立的 21点休闲小游戏
         body = const BlackjackGameScreen();
@@ -676,6 +749,10 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           NavigationDestination(
             icon: Icon(LucideIcons.coins),
             label: '金库资产',
+          ),
+          NavigationDestination(
+            icon: Icon(LucideIcons.bookOpen),
+            label: '衣食住行书',
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.gamepad2),

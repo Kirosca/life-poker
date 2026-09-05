@@ -9,12 +9,13 @@ void main() {
     await tester.pumpWidget(const LifePokerApp());
     await tester.pumpAndSettle();
 
-    // 1. Verify title and 5 tabs are displayed
+    // 1. Verify title and 6 tabs are displayed
     expect(find.text('Life-Poker'), findsOneWidget);
     expect(find.text('牌桌时间块'), findsOneWidget);
     expect(find.text('事件卡库'), findsOneWidget);
     expect(find.text('技能卡组'), findsOneWidget);
     expect(find.text('金库资产'), findsOneWidget);
+    expect(find.text('衣食住行书'), findsOneWidget);
     expect(find.text('21点小游戏'), findsOneWidget);
 
     // 2. Test 牌桌时间块: Nightly Prep dialog
@@ -69,7 +70,23 @@ void main() {
     await tester.tap(find.text('取消'));
     await tester.pumpAndSettle();
 
-    // 8. Test 21点小游戏: Play a round
+    // 8. Test 衣食住行书 (Phase 3 Codex Book)
+    await tester.tap(find.text('衣食住行书'));
+    await tester.pumpAndSettle();
+    expect(find.text('衣食住行之书 (Life Codex)'), findsOneWidget);
+    expect(find.text('极简胶囊衣橱与穿搭矩阵'), findsOneWidget);
+    // Switch to 食之书
+    await tester.tap(find.text('食之书'));
+    await tester.pumpAndSettle();
+    expect(find.text('脑力劳动者低 GI 控糖与进食窗口'), findsOneWidget);
+    // Open 编纂新准则 dialog
+    await tester.tap(find.text('编纂新准则'));
+    await tester.pumpAndSettle();
+    expect(find.text('编纂《食之书》新准则'), findsOneWidget);
+    await tester.tap(find.text('取消'));
+    await tester.pumpAndSettle();
+
+    // 9. Test 21点小游戏: Play a round
     await tester.tap(find.text('21点小游戏'));
     await tester.pumpAndSettle();
     expect(find.text('Blackjack 21点休闲小游戏'), findsOneWidget);
