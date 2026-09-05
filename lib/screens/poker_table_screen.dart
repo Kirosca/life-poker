@@ -1,35 +1,137 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
-import '../widgets/blackjack_meter.dart';
 import '../widgets/time_block_slot.dart';
 
 class PokerTableScreen extends StatelessWidget {
   final List<TimeBlock> timeBlocks;
-  final List<TaskCard> allTasks;
+  final List<EventCard> allEvents;
   final List<SkillCard> allSkills;
-  final ValueChanged<TaskCard> onToggleTask;
-  final Function(String blockId, TaskCard task) onAssignTaskToBlock;
-  final ValueChanged<TaskCard> onRemoveTaskFromBlock;
-  final VoidCallback onHit;
-  final VoidCallback onStand;
+  final ValueChanged<EventCard> onToggleEvent;
+  final Function(String blockId, EventCard event) onAssignEventToBlock;
+  final ValueChanged<EventCard> onRemoveEventFromBlock;
+  final Function(String blockId, String skillId) onEquipSkillToBlock;
+  final VoidCallback onNightlyPrep;
+  final VoidCallback onSleepCheckIn;
 
   const PokerTableScreen({
     super.key,
     required this.timeBlocks,
-    required this.allTasks,
+    required this.allEvents,
     required this.allSkills,
-    required this.onToggleTask,
-    required this.onAssignTaskToBlock,
-    required this.onRemoveTaskFromBlock,
-    required this.onHit,
-    required this.onStand,
+    required this.onToggleEvent,
+    required this.onAssignEventToBlock,
+    required this.onRemoveEventFromBlock,
+    required this.onEquipSkillToBlock,
+    required this.onNightlyPrep,
+    required this.onSleepCheckIn,
   });
 
-  void _showPlayCardSheet(BuildContext context, TimeBlock block) {
-    final availableTasks = allTasks
-        .where((t) => t.scheduledBlockId == null && !t.isCompleted)
+  void _showEquipSkillSheet(BuildContext context, TimeBlock block) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        final theme = ShadTheme.of(ctx);
+        return Container(
+          padding: const EdgeInsets.all(20),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.7,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('为时间块装配主打技能牌', style: theme.textTheme.h4),
+                      Text('${block.title} (${block.timeRange})',
+                          style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                    ],
+                  ),
+                  ShadIconButton.ghost(
+                    icon: const Icon(LucideIcons.x, size: 16),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: allSkills.length,
+                  itemBuilder: (c, i) {
+                    final skill = allSkills[i];
+                    final isEquipped = block.activeSkillId == skill.id;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: ShadCard(
+                        padding: const EdgeInsets.all(12),
+                        title: Row(
+                          children: [
+                            Icon(
+                              skill.isSleepSkill ? LucideIcons.moon : skill.suit.icon,
+                              size: 18,
+                              color: skill.suit.color,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(skill.name,
+                                      style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold)),
+                                  Text(
+                                    skill.isSleepSkill
+                                        ? '自律打卡 · 次日状态加成'
+                                        : 'LV.${skill.level} · ${skill.exp}/${skill.maxExp} EXP',
+                                    style: theme.textTheme.muted.copyWith(fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            isEquipped
+                                ? ShadBadge(child: const Text('当前装配'))
+                                : ShadButton.outline(
+                                    size: ShadButtonSize.sm,
+                                    onPressed: () {
+                                      onEquipSkillToBlock(block.id, skill.id);
+                                      Navigator.pop(ctx);
+                                    },
+                                    child: const Text('装配此牌'),
+                                  ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddEventSheet(BuildContext context, TimeBlock block) {
+    final unassignedEvents = allEvents
+        .where((e) => e.scheduledBlockId == null && !e.isCompleted)
         .toList();
+
+    // Sort: Urgent events first!
+    unassignedEvents.sort((a, b) {
+      if (a.isUrgent && !b.isUrgent) return -1;
+      if (!a.isUrgent && b.isUrgent) return 1;
+      return 0;
+    });
 
     showModalBottomSheet(
       context: context,
@@ -54,14 +156,9 @@ class PokerTableScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '出牌：打入时间块',
-                        style: theme.textTheme.h4,
-                      ),
-                      Text(
-                        '${block.title} (${block.timeRange})',
-                        style: theme.textTheme.muted.copyWith(fontSize: 12),
-                      ),
+                      Text('打入事件手牌', style: theme.textTheme.h4),
+                      Text('${block.title} (${block.timeRange})',
+                          style: theme.textTheme.muted.copyWith(fontSize: 12)),
                     ],
                   ),
                   ShadIconButton.ghost(
@@ -71,7 +168,7 @@ class PokerTableScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              if (availableTasks.isEmpty)
+              if (unassignedEvents.isEmpty)
                 Expanded(
                   child: Center(
                     child: Column(
@@ -79,12 +176,9 @@ class PokerTableScreen extends StatelessWidget {
                       children: [
                         Icon(LucideIcons.inbox, size: 36, color: theme.colorScheme.mutedForeground),
                         const SizedBox(height: 10),
-                        Text('暂无未安排的空闲任务手牌', style: theme.textTheme.p),
+                        Text('暂无可安排的待办事件', style: theme.textTheme.p),
                         const SizedBox(height: 4),
-                        Text(
-                          '可在“任务卡库”中创建新手牌后再打入',
-                          style: theme.textTheme.muted.copyWith(fontSize: 12),
-                        ),
+                        Text('可在“事件卡库”中创建新任务', style: theme.textTheme.muted.copyWith(fontSize: 12)),
                       ],
                     ),
                   ),
@@ -92,18 +186,9 @@ class PokerTableScreen extends StatelessWidget {
               else
                 Expanded(
                   child: ListView.builder(
-                    itemCount: availableTasks.length,
+                    itemCount: unassignedEvents.length,
                     itemBuilder: (c, i) {
-                      final task = availableTasks[i];
-                      final skill = allSkills.firstWhere(
-                        (s) => s.id == task.requiredSkillId,
-                        orElse: () => SkillCard(
-                          id: 'none',
-                          name: '通用',
-                          suit: task.suit,
-                        ),
-                      );
-
+                      final event = unassignedEvents[i];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: ShadCard(
@@ -112,19 +197,44 @@ class PokerTableScreen extends StatelessWidget {
                             children: [
                               ShadBadge.secondary(
                                 child: Text(
-                                  '${task.suit.symbol} ${task.points}点',
+                                  '${event.suit.symbol} ${event.points}点',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: task.suit.color,
+                                    color: event.suit.color,
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
+                              if (event.isUrgent) ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(LucideIcons.flame, size: 12, color: Colors.redAccent),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        event.countdownString.isNotEmpty ? event.countdownString : '紧迫',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.redAccent,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                               Expanded(
                                 child: Text(
-                                  task.title,
+                                  event.title,
                                   style: theme.textTheme.p.copyWith(
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: event.isUrgent ? FontWeight.bold : FontWeight.w500,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -132,20 +242,24 @@ class PokerTableScreen extends StatelessWidget {
                               ShadButton.outline(
                                 size: ShadButtonSize.sm,
                                 onPressed: () {
-                                  onAssignTaskToBlock(block.id, task);
+                                  onAssignEventToBlock(block.id, event);
                                   Navigator.pop(ctx);
                                 },
                                 child: const Text('打入'),
                               ),
                             ],
                           ),
-                          description: Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              '技能: ${skill.name} · ${task.suit.domain}',
-                              style: theme.textTheme.muted.copyWith(fontSize: 11),
-                            ),
-                          ),
+                          description: event.description.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    event.description,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.muted.copyWith(fontSize: 11),
+                                  ),
+                                )
+                              : null,
                         ),
                       );
                     },
@@ -161,56 +275,102 @@ class PokerTableScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    final scheduledTasks = allTasks.where((t) => t.scheduledBlockId != null).toList();
-    final totalPoints = scheduledTasks.fold<int>(0, (sum, t) => sum + t.points);
-    final completedPoints = scheduledTasks
-        .where((t) => t.isCompleted)
-        .fold<int>(0, (sum, t) => sum + t.points);
+    final urgentCount = allEvents.where((e) => e.isUrgent && !e.isCompleted).length;
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 80),
       children: [
+        // 顶部备战与警报横幅
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: BlackjackMeter(
-            totalPoints: totalPoints,
-            completedPoints: completedPoints,
-            onHit: onHit,
-            onStand: onStand,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '今日牌桌时间块 (Time-Boxing)',
-                style: theme.textTheme.p.copyWith(
-                  fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: ShadCard(
+            padding: const EdgeInsets.all(16),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(LucideIcons.calendarDays, size: 18),
+                    const SizedBox(width: 8),
+                    Text('今日实战牌桌', style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold)),
+                  ],
                 ),
+                ShadButton.outline(
+                  size: ShadButtonSize.sm,
+                  leading: const Icon(LucideIcons.sparkles, size: 14),
+                  onPressed: onNightlyPrep,
+                  child: const Text('晚间备战 / 模板'),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  if (urgentCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.flame, size: 14, color: Colors.redAccent),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$urgentCount 项紧迫事件待处理',
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.checkCircle2, size: 14, color: Colors.green),
+                        const SizedBox(width: 4),
+                        Text('暂无危机紧迫事件，牌局节奏平稳', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                      ],
+                    ),
+                ],
               ),
-              Text(
-                '共 ${timeBlocks.length} 个槽位',
-                style: theme.textTheme.muted.copyWith(fontSize: 12),
-              ),
-            ],
+            ),
           ),
         ),
-        const SizedBox(height: 4),
+
+        // 时间块列表
         ...timeBlocks.map((block) {
-          final blockTasks = allTasks
-              .where((t) => t.scheduledBlockId == block.id)
+          final blockEvents = allEvents
+              .where((e) => e.scheduledBlockId == block.id)
               .toList();
+
+          final equippedSkill = allSkills.firstWhere(
+            (s) => s.id == block.activeSkillId,
+            orElse: () => SkillCard(
+              id: 'none',
+              name: '未装配技能',
+              suit: CardSuit.spades,
+            ),
+          );
+
+          final hasEquipped = block.activeSkillId != null;
 
           return TimeBlockSlot(
             block: block,
-            tasks: blockTasks,
+            equippedSkill: hasEquipped ? equippedSkill : null,
+            events: blockEvents,
             allSkills: allSkills,
-            onPlayCard: () => _showPlayCardSheet(context, block),
-            onToggleTask: onToggleTask,
-            onRemoveTaskFromBlock: onRemoveTaskFromBlock,
+            onEquipSkill: () => _showEquipSkillSheet(context, block),
+            onAddEvent: () => _showAddEventSheet(context, block),
+            onToggleEvent: onToggleEvent,
+            onRemoveEventFromBlock: onRemoveEventFromBlock,
+            onSleepDisciplineCheck: onSleepCheckIn,
           );
         }),
       ],

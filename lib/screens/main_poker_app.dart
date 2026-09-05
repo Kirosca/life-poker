@@ -1,11 +1,10 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 import 'poker_table_screen.dart';
 import 'task_deck_screen.dart';
 import 'skill_deck_screen.dart';
-import '../widgets/blackjack_meter.dart';
+import 'blackjack_game_screen.dart';
 
 class MainPokerAppScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -24,8 +23,19 @@ class MainPokerAppScreen extends StatefulWidget {
 class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
   int _currentTabIndex = 0;
 
-  // Default initial skills (Deck)
+  // 技能卡组 (包含普通技能与特殊睡眠技能卡)
   final List<SkillCard> _skills = [
+    SkillCard(
+      id: 'skill_sleep',
+      name: '睡眠恢复与节律',
+      suit: CardSuit.hearts,
+      level: 4,
+      exp: 280,
+      maxExp: 400,
+      description: '保持规律作息与深层睡眠，激活次日全技能精力充沛',
+      isSleepSkill: true,
+      sleepDisciplineScore: 92,
+    ),
     SkillCard(
       id: 'skill_1',
       name: 'Flutter & 架构设计',
@@ -60,7 +70,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     ),
   ];
 
-  // Default initial time blocks (Poker Table Slots)
+  // 时间块骨架 (支持挂载 activeSkillId 技能卡槽)
   final List<TimeBlock> _timeBlocks = [
     TimeBlock(
       id: 'tb_morning',
@@ -68,6 +78,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       timeRange: '07:30 - 09:00',
       icon: LucideIcons.sunrise,
       recommendedCapacity: 5,
+      activeSkillId: 'skill_2',
     ),
     TimeBlock(
       id: 'tb_deepwork',
@@ -75,6 +86,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       timeRange: '09:00 - 12:00',
       icon: LucideIcons.brain,
       recommendedCapacity: 8,
+      activeSkillId: 'skill_1',
     ),
     TimeBlock(
       id: 'tb_afternoon',
@@ -82,6 +94,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       timeRange: '14:00 - 17:30',
       icon: LucideIcons.gauge,
       recommendedCapacity: 6,
+      activeSkillId: 'skill_4',
     ),
     TimeBlock(
       id: 'tb_evening',
@@ -89,133 +102,160 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       timeRange: '20:00 - 22:00',
       icon: LucideIcons.moon,
       recommendedCapacity: 4,
+      activeSkillId: 'skill_3',
+    ),
+    TimeBlock(
+      id: 'tb_sleep',
+      title: '夜间深度睡眠恢复',
+      timeRange: '23:00 - 07:00',
+      icon: LucideIcons.bedDouble,
+      recommendedCapacity: 0,
+      activeSkillId: 'skill_sleep',
     ),
   ];
 
-  // Default initial Task Cards
-  final List<TaskCard> _tasks = [
-    TaskCard(
-      id: 't1',
-      title: '全面采用 shadcn_ui 极简系统',
-      description: '统一组件规范、微边框质感与纯粹排版',
+  // 初始事件卡手牌 (包含普通事件与未来紧迫事件)
+  final List<EventCard> _events = [
+    EventCard(
+      id: 'e1',
+      title: '线上生产服务 Bug 紧急修复',
+      description: '排查高并发链路异常并发布热修复补丁',
       suit: CardSuit.spades,
       points: 7,
+      isUrgent: true,
+      deadline: DateTime.now().add(const Duration(hours: 4)),
       requiredSkillId: 'skill_1',
       scheduledBlockId: 'tb_deepwork',
-      isCompleted: true,
+      isCompleted: false,
     ),
-    TaskCard(
-      id: 't2',
-      title: '户外慢跑 5 公里',
-      description: '晨间有氧，释放多巴胺',
+    EventCard(
+      id: 'e2',
+      title: '体能达标测试准备跑',
+      description: '配速 5分30秒 匀速慢跑 5 公里',
       suit: CardSuit.hearts,
       points: 4,
+      isUrgent: false,
       requiredSkillId: 'skill_2',
       scheduledBlockId: 'tb_morning',
       isCompleted: true,
     ),
-    TaskCard(
-      id: 't3',
-      title: '研读认知心理学经典章节',
-      description: '整理 3 条核心心智模型',
-      suit: CardSuit.clubs,
-      points: 5,
-      requiredSkillId: 'skill_3',
-      scheduledBlockId: 'tb_evening',
-      isCompleted: false,
-    ),
-    TaskCard(
-      id: 't4',
-      title: '梳理本周产品发布路线图',
-      description: '明确各关键节点与预期交付产物',
+    EventCard(
+      id: 'e3',
+      title: '季度财务与收支对账',
+      description: '核实企业及个人账户进出账目',
       suit: CardSuit.diamonds,
-      points: 3,
+      points: 5,
+      isUrgent: true,
+      deadline: DateTime.now().add(const Duration(days: 1)),
       requiredSkillId: 'skill_4',
       scheduledBlockId: 'tb_afternoon',
       isCompleted: false,
     ),
-    TaskCard(
-      id: 't5',
-      title: '整理代码仓库与 CI 流程',
-      suit: CardSuit.spades,
+    EventCard(
+      id: 'e4',
+      title: '精读《思考，快与慢》第3章',
+      description: '提炼双系统认知启发并撰写笔记',
+      suit: CardSuit.clubs,
       points: 3,
-      requiredSkillId: 'skill_1',
+      isUrgent: false,
+      requiredSkillId: 'skill_3',
       isCompleted: false,
     ),
   ];
 
-  // Habit card deck for Blackjack "Hit"
-  final List<Map<String, dynamic>> _hitDeck = [
-    {'title': '慢饮一杯温水', 'suit': CardSuit.hearts, 'pts': 1},
-    {'title': '远眺护眼与全身伸展', 'suit': CardSuit.hearts, 'pts': 2},
-    {'title': '整理桌面杂物营造整洁气场', 'suit': CardSuit.diamonds, 'pts': 2},
-    {'title': '速记 1 条即时生活灵感', 'suit': CardSuit.clubs, 'pts': 1},
-    {'title': '快速检查当日核心优先级', 'suit': CardSuit.spades, 'pts': 2},
-  ];
-
-  void _toggleTask(TaskCard task) {
+  // 事件打钩完成：将 EXP 注入该时间块装配的主打技能牌！
+  void _toggleEvent(EventCard event) {
     setState(() {
-      final idx = _tasks.indexWhere((t) => t.id == task.id);
+      final idx = _events.indexWhere((e) => e.id == event.id);
       if (idx != -1) {
-        final newStatus = !_tasks[idx].isCompleted;
-        _tasks[idx] = _tasks[idx].copyWith(isCompleted: newStatus);
+        final newStatus = !_events[idx].isCompleted;
+        _events[idx] = _events[idx].copyWith(isCompleted: newStatus);
 
-        if (newStatus && task.requiredSkillId != null) {
-          final skillIdx =
-              _skills.indexWhere((s) => s.id == task.requiredSkillId);
-          if (skillIdx != -1) {
-            final prevLevel = _skills[skillIdx].level;
-            _skills[skillIdx].addExp(task.points * 10);
-            final newLevel = _skills[skillIdx].level;
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                behavior: SnackBarBehavior.floating,
-                content: Text(
-                  newLevel > prevLevel
-                      ? '🎉 技能【${_skills[skillIdx].name}】晋升 LV.$newLevel！'
-                      : '✨ 技能【${_skills[skillIdx].name}】获得 +${task.points * 10} EXP！',
-                ),
-              ),
+        if (newStatus) {
+          // 优先为该时间块装配的技能注入经验；若无则为事件绑定的技能注入
+          String? targetSkillId;
+          if (event.scheduledBlockId != null) {
+            final block = _timeBlocks.firstWhere(
+              (b) => b.id == event.scheduledBlockId,
+              orElse: () => _timeBlocks[0],
             );
+            targetSkillId = block.activeSkillId ?? event.requiredSkillId;
+          } else {
+            targetSkillId = event.requiredSkillId;
+          }
+
+          if (targetSkillId != null) {
+            final skillIdx = _skills.indexWhere((s) => s.id == targetSkillId);
+            if (skillIdx != -1) {
+              final prevLevel = _skills[skillIdx].level;
+              _skills[skillIdx].addExp(event.points * 12);
+              final newLevel = _skills[skillIdx].level;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  content: Text(
+                    newLevel > prevLevel
+                        ? '🎉 攻克事件！技能【${_skills[skillIdx].name}】升至 LV.$newLevel！'
+                        : '✨ 攻克【${event.title}】！技能【${_skills[skillIdx].name}】+${event.points * 12} EXP',
+                  ),
+                ),
+              );
+            }
           }
         }
       }
     });
   }
 
-  void _assignTaskToBlock(String blockId, TaskCard task) {
+  void _assignEventToBlock(String blockId, EventCard event) {
     setState(() {
-      final idx = _tasks.indexWhere((t) => t.id == task.id);
+      final idx = _events.indexWhere((e) => e.id == event.id);
       if (idx != -1) {
-        _tasks[idx] = _tasks[idx].copyWith(scheduledBlockId: blockId);
+        _events[idx] = _events[idx].copyWith(scheduledBlockId: blockId);
       }
     });
   }
 
-  void _removeTaskFromBlock(TaskCard task) {
+  void _removeEventFromBlock(EventCard event) {
     setState(() {
-      final idx = _tasks.indexWhere((t) => t.id == task.id);
+      final idx = _events.indexWhere((e) => e.id == event.id);
       if (idx != -1) {
-        _tasks[idx] = _tasks[idx].copyWith(scheduledBlockId: null);
+        _events[idx] = _events[idx].copyWith(scheduledBlockId: null);
       }
     });
   }
 
-  void _addTask(TaskCard task) {
+  void _equipSkillToBlock(String blockId, String skillId) {
     setState(() {
-      final idx = _tasks.indexWhere((t) => t.id == task.id);
+      final idx = _timeBlocks.indexWhere((b) => b.id == blockId);
       if (idx != -1) {
-        _tasks[idx] = task;
+        _timeBlocks[idx] = _timeBlocks[idx].copyWith(activeSkillId: skillId);
+      }
+    });
+    final skill = _skills.firstWhere((s) => s.id == skillId);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Text('已为时间块装配主打技能: 【${skill.name}】'),
+      ),
+    );
+  }
+
+  void _addEvent(EventCard event) {
+    setState(() {
+      final idx = _events.indexWhere((e) => e.id == event.id);
+      if (idx != -1) {
+        _events[idx] = event;
       } else {
-        _tasks.insert(0, task);
+        _events.insert(0, event);
       }
     });
   }
 
-  void _deleteTask(TaskCard task) {
+  void _deleteEvent(EventCard event) {
     setState(() {
-      _tasks.removeWhere((t) => t.id == task.id);
+      _events.removeWhere((e) => e.id == event.id);
     });
   }
 
@@ -223,9 +263,6 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     setState(() {
       _skills.add(skill);
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('已解锁新技能手牌: ${skill.name}')),
-    );
   }
 
   void _trainSkill(SkillCard skill) {
@@ -240,7 +277,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
             behavior: SnackBarBehavior.floating,
             content: Text(
               newL > prevL
-                  ? '👑 技能突破！【${skill.name}】提升至 LV.$newL！'
+                  ? '👑 突破瓶颈！【${skill.name}】提升至 LV.$newL！'
                   : '📖 研习专注！【${skill.name}】+25 EXP',
             ),
           ),
@@ -249,52 +286,169 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     });
   }
 
-  void _onHit() {
-    final random = Random();
-    final item = _hitDeck[random.nextInt(_hitDeck.length)];
-    final newTask = TaskCard(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: item['title'] as String,
-      suit: item['suit'] as CardSuit,
-      points: item['pts'] as int,
-      scheduledBlockId: 'tb_morning',
-    );
-    _addTask(newTask);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        content: Text('🃏 抽中微行动手牌: ${newTask.title} (+${newTask.points}点)'),
-      ),
-    );
-  }
-
-  void _onStand() {
-    final totalPts = _tasks
-        .where((t) => t.scheduledBlockId != null)
-        .fold<int>(0, (s, t) => s + t.points);
+  // 晚间备战明日 (Nightly Prep) 对话框
+  void _openNightlyPrepDialog() {
+    final urgentPending = _events.where((e) => e.isUrgent && !e.isCompleted).toList();
+    final theme = ShadTheme.of(context);
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Row(
           children: [
-            Icon(LucideIcons.lock, size: 18),
+            Icon(LucideIcons.sparkles, color: Colors.amber, size: 20),
             SizedBox(width: 8),
-            Text('牌桌锁定 (Stand)'),
+            Text('晚间备战明日 (Nightly Prep)'),
           ],
         ),
-        content: Text(
-          totalPts > 21
-              ? '今日时间块总点数已达 $totalPts 点，已处于精力超载状态 (Bust)！建议移出部分任务。'
-              : totalPts == 21
-                  ? '🎉 完美 21 点 (Blackjack)！今日时间块精力配比已臻巅峰黄金比例！'
-                  : '今日时间块已规划 $totalPts / 21 点，配比健康充沛，专注打好这手牌吧！',
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '检查明日牌桌骨架，并优先排入危机事件：',
+                style: theme.textTheme.muted.copyWith(fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              if (urgentPending.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(LucideIcons.flame, color: Colors.redAccent, size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            '检测到 ${urgentPending.length} 项紧迫事件！',
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      ...urgentPending.map((u) => Text('• ${u.title} (${u.countdownString})',
+                          style: const TextStyle(fontSize: 12))),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              Text(
+                '明日作息骨架：',
+                style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              const SizedBox(height: 6),
+              ..._timeBlocks.take(4).map((b) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Icon(b.icon, size: 14),
+                        const SizedBox(width: 6),
+                        Text('${b.title} (${b.timeRange})', style: const TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
+        ),
+        actions: [
+          ShadButton.outline(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('稍后调整'),
+          ),
+          ShadButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('已确认明日牌桌骨架，就绪开局！')),
+              );
+            },
+            child: const Text('锁定明日骨架'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 睡眠纪律打卡对话框
+  void _openSleepDisciplineDialog() {
+    final sleepSkill = _skills.firstWhere((s) => s.isSleepSkill);
+    int currentScore = sleepSkill.sleepDisciplineScore;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(LucideIcons.moon, color: Colors.indigoAccent, size: 20),
+            SizedBox(width: 8),
+            Text('睡眠纪律打卡与评分'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('昨夜作息与睡眠质量自律复盘：'),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('今日自律评分：', style: TextStyle(fontWeight: FontWeight.bold)),
+                ShadBadge.secondary(
+                  child: Text('$currentScore 分', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '✅ 按时 23:00 前熄灯入睡\n'
+              '✅ 达成 7.5 小时深度修复周期\n'
+              '✅ 晨间自然唤醒，无疲惫宿醉感',
+              style: TextStyle(fontSize: 12, height: 1.8),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Row(
+                children: [
+                  Icon(LucideIcons.sparkles, size: 14, color: Colors.green),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '已激活次日 BUFF：全技能卡牌获得精力充沛加成！',
+                      style: TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         actions: [
           ShadButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('确定'),
+            onPressed: () {
+              setState(() {
+                sleepSkill.addExp(40);
+              });
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('睡眠纪律打卡成功！【睡眠技能】+40 EXP')),
+              );
+            },
+            child: const Text('确认打卡 (+40 EXP)'),
           ),
         ],
       ),
@@ -310,24 +464,25 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       case 0:
         body = PokerTableScreen(
           timeBlocks: _timeBlocks,
-          allTasks: _tasks,
+          allEvents: _events,
           allSkills: _skills,
-          onToggleTask: _toggleTask,
-          onAssignTaskToBlock: _assignTaskToBlock,
-          onRemoveTaskFromBlock: _removeTaskFromBlock,
-          onHit: _onHit,
-          onStand: _onStand,
+          onToggleEvent: _toggleEvent,
+          onAssignEventToBlock: _assignEventToBlock,
+          onRemoveEventFromBlock: _removeEventFromBlock,
+          onEquipSkillToBlock: _equipSkillToBlock,
+          onNightlyPrep: _openNightlyPrepDialog,
+          onSleepCheckIn: _openSleepDisciplineDialog,
         );
         break;
       case 1:
         body = TaskDeckScreen(
-          tasks: _tasks,
+          events: _events,
           allSkills: _skills,
           timeBlocks: _timeBlocks,
-          onToggleTask: _toggleTask,
-          onAddTask: _addTask,
-          onDeleteTask: _deleteTask,
-          onAssignToBlock: _assignTaskToBlock,
+          onToggleEvent: _toggleEvent,
+          onAddEvent: _addEvent,
+          onDeleteEvent: _deleteEvent,
+          onAssignToBlock: _assignEventToBlock,
         );
         break;
       case 2:
@@ -339,41 +494,8 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
         break;
       case 3:
       default:
-        final scheduled = _tasks.where((t) => t.scheduledBlockId != null).toList();
-        final totalPts = scheduled.fold<int>(0, (s, t) => s + t.points);
-        final completedPts = scheduled
-            .where((t) => t.isCompleted)
-            .fold<int>(0, (s, t) => s + t.points);
-
-        body = ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text(
-              '♠️ 21点精力预算机制 (副功能)',
-              style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            BlackjackMeter(
-              totalPoints: totalPts,
-              completedPoints: completedPts,
-              onHit: _onHit,
-              onStand: _onStand,
-            ),
-            const SizedBox(height: 16),
-            ShadCard(
-              title: const Text('牌桌法则哲学'),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  '1. 时间块即卡槽：将今日任务卡打入对应时间块中，形成出牌组合。\n'
-                  '2. 21点精力上限：打入各时间块的任务点数之和建议保持在 16~21 点，防止精力超载 (Bust)。\n'
-                  '3. 技能协同：任务完成后将自动为绑定的技能卡积累 EXP 经验，推动技能升级！',
-                  style: theme.textTheme.muted.copyWith(height: 1.6, fontSize: 13),
-                ),
-              ),
-            ),
-          ],
-        );
+        // 独立的 21点休闲小游戏
+        body = const BlackjackGameScreen();
     }
 
     return Scaffold(
@@ -393,6 +515,10 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           ],
         ),
         actions: [
+          ShadIconButton.ghost(
+            icon: const Icon(LucideIcons.moon, size: 18),
+            onPressed: _openSleepDisciplineDialog,
+          ),
           ShadIconButton.ghost(
             icon: Icon(
               widget.isDarkMode ? LucideIcons.sun : LucideIcons.moon,
@@ -414,15 +540,15 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.listTodo),
-            label: '任务卡库',
+            label: '事件卡库',
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.sparkles),
             label: '技能卡组',
           ),
           NavigationDestination(
-            icon: Icon(LucideIcons.zap),
-            label: '21点精力',
+            icon: Icon(LucideIcons.gamepad2),
+            label: '21点小游戏',
           ),
         ],
       ),

@@ -3,22 +3,22 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 
 class TaskDeckScreen extends StatefulWidget {
-  final List<TaskCard> tasks;
+  final List<EventCard> events;
   final List<SkillCard> allSkills;
   final List<TimeBlock> timeBlocks;
-  final ValueChanged<TaskCard> onToggleTask;
-  final ValueChanged<TaskCard> onAddTask;
-  final ValueChanged<TaskCard> onDeleteTask;
-  final Function(String blockId, TaskCard task) onAssignToBlock;
+  final ValueChanged<EventCard> onToggleEvent;
+  final ValueChanged<EventCard> onAddEvent;
+  final ValueChanged<EventCard> onDeleteEvent;
+  final Function(String blockId, EventCard event) onAssignToBlock;
 
   const TaskDeckScreen({
     super.key,
-    required this.tasks,
+    required this.events,
     required this.allSkills,
     required this.timeBlocks,
-    required this.onToggleTask,
-    required this.onAddTask,
-    required this.onDeleteTask,
+    required this.onToggleEvent,
+    required this.onAddEvent,
+    required this.onDeleteEvent,
     required this.onAssignToBlock,
   });
 
@@ -27,7 +27,7 @@ class TaskDeckScreen extends StatefulWidget {
 }
 
 class _TaskDeckScreenState extends State<TaskDeckScreen> {
-  int _statusFilter = 0; // 0: All, 1: Active, 2: Completed
+  int _statusFilter = 0; // 0: All, 1: Urgent Only (紧迫), 2: Active (待办), 3: Completed (已攻克)
   CardSuit? _suitFilter;
   String _search = '';
   final _searchCtrl = TextEditingController();
@@ -38,12 +38,14 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
     super.dispose();
   }
 
-  void _showAddEditDialog(BuildContext context, [TaskCard? editingTask]) {
-    final titleCtrl = TextEditingController(text: editingTask?.title ?? '');
-    final descCtrl = TextEditingController(text: editingTask?.description ?? '');
-    CardSuit suit = editingTask?.suit ?? CardSuit.spades;
-    int points = editingTask?.points ?? 3;
-    String? skillId = editingTask?.requiredSkillId;
+  void _showAddEditDialog(BuildContext context, [EventCard? editingEvent]) {
+    final titleCtrl = TextEditingController(text: editingEvent?.title ?? '');
+    final descCtrl = TextEditingController(text: editingEvent?.description ?? '');
+    CardSuit suit = editingEvent?.suit ?? CardSuit.spades;
+    int points = editingEvent?.points ?? 3;
+    bool isUrgent = editingEvent?.isUrgent ?? false;
+    DateTime? deadline = editingEvent?.deadline;
+    String? skillId = editingEvent?.requiredSkillId;
 
     showModalBottomSheet(
       context: context,
@@ -72,7 +74,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          editingTask != null ? '编辑任务卡牌' : '新增任务卡牌 (Task Card)',
+                          editingEvent != null ? '编辑事件卡牌' : '新增事件卡牌 (Event Card)',
                           style: theme.textTheme.h4,
                         ),
                         ShadIconButton.ghost(
@@ -82,14 +84,71 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text('任务名称 *', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+
+                    // 紧迫事件开关
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isUrgent ? Colors.redAccent.withValues(alpha: 0.1) : theme.colorScheme.muted.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isUrgent ? Colors.redAccent : theme.colorScheme.border,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                LucideIcons.flame,
+                                size: 18,
+                                color: isUrgent ? Colors.redAccent : theme.colorScheme.mutedForeground,
+                              ),
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '未来紧迫事件卡 (Urgent Event)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: isUrgent ? Colors.redAccent : null,
+                                    ),
+                                  ),
+                                  Text(
+                                    '开启后具有倒计时警报并在备战中置顶提示',
+                                    style: theme.textTheme.muted.copyWith(fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          ShadSwitch(
+                            value: isUrgent,
+                            onChanged: (val) {
+                              setSheetState(() {
+                                isUrgent = val;
+                                if (isUrgent && deadline == null) {
+                                  deadline = DateTime.now().add(const Duration(days: 1));
+                                }
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    Text('事件名称 *', style: theme.textTheme.muted.copyWith(fontSize: 12)),
                     const SizedBox(height: 6),
                     ShadInput(
                       controller: titleCtrl,
-                      placeholder: const Text('例如：重构核心逻辑、完成间歇训练'),
+                      placeholder: const Text('例如：完成核心业务上线、备战体能测试'),
                     ),
                     const SizedBox(height: 14),
-                    Text('详细备注与交付标准', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                    Text('详细要求与验收标准', style: theme.textTheme.muted.copyWith(fontSize: 12)),
                     const SizedBox(height: 6),
                     ShadInput(
                       controller: descCtrl,
@@ -97,8 +156,39 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Suit selection
-                    Text('选择花色领域', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                    // 截止日期选择
+                    if (isUrgent) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('截止倒计时 (Deadline)', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                          ShadButton.outline(
+                            size: ShadButtonSize.sm,
+                            leading: const Icon(LucideIcons.calendar, size: 14),
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: deadline ?? DateTime.now().add(const Duration(days: 1)),
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime.now().add(const Duration(days: 365)),
+                              );
+                              if (picked != null) {
+                                setSheetState(() => deadline = picked);
+                              }
+                            },
+                            child: Text(
+                              deadline != null
+                                  ? '${deadline!.month}月${deadline!.day}日'
+                                  : '选择截止日期',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // 花色领域
+                    Text('所属领域花色', style: theme.textTheme.muted.copyWith(fontSize: 12)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -121,11 +211,11 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Points Slider (1~11)
+                    // 点数
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('精力点数 (Points: 1~11)', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                        Text('难度与耗能点数 (1~11)', style: theme.textTheme.muted.copyWith(fontSize: 12)),
                         ShadBadge.secondary(
                           child: Text('$points 点', style: const TextStyle(fontWeight: FontWeight.bold)),
                         ),
@@ -142,8 +232,8 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Link Skill
-                    Text('关联加成技能', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                    // 关联技能
+                    Text('关联技能牌 (完成后注入EXP)', style: theme.textTheme.muted.copyWith(fontSize: 12)),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String?>(
                       initialValue: skillId,
@@ -181,26 +271,30 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                       onPressed: () {
                         final text = titleCtrl.text.trim();
                         if (text.isEmpty) return;
-                        final item = editingTask != null
-                            ? editingTask.copyWith(
+                        final item = editingEvent != null
+                            ? editingEvent.copyWith(
                                 title: text,
                                 description: descCtrl.text.trim(),
                                 suit: suit,
                                 points: points,
+                                isUrgent: isUrgent,
+                                deadline: deadline,
                                 requiredSkillId: skillId,
                               )
-                            : TaskCard(
+                            : EventCard(
                                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                                 title: text,
                                 description: descCtrl.text.trim(),
                                 suit: suit,
                                 points: points,
+                                isUrgent: isUrgent,
+                                deadline: deadline,
                                 requiredSkillId: skillId,
                               );
-                        widget.onAddTask(item);
+                        widget.onAddEvent(item);
                         Navigator.pop(ctx);
                       },
-                      child: Text(editingTask != null ? '保存修改' : '放入任务卡库'),
+                      child: Text(editingEvent != null ? '保存修改' : '放入事件卡库'),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -213,7 +307,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
     );
   }
 
-  void _showAssignBlockModal(BuildContext context, TaskCard task) {
+  void _showAssignBlockModal(BuildContext context, EventCard event) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -229,7 +323,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '将【${task.title}】打入时间块：',
+                  '将【${event.title}】打入时间块：',
                   style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -240,7 +334,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                     subtitle: Text(block.timeRange, style: const TextStyle(fontSize: 12)),
                     trailing: const Icon(LucideIcons.chevronRight, size: 16),
                     onTap: () {
-                      widget.onAssignToBlock(block.id, task);
+                      widget.onAssignToBlock(block.id, event);
                       Navigator.pop(ctx);
                     },
                   );
@@ -257,29 +351,39 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
 
-    final filtered = widget.tasks.where((t) {
-      if (_statusFilter == 1 && t.isCompleted) return false;
-      if (_statusFilter == 2 && !t.isCompleted) return false;
-      if (_suitFilter != null && t.suit != _suitFilter) return false;
+    final filtered = widget.events.where((e) {
+      if (_statusFilter == 1 && (!e.isUrgent || e.isCompleted)) return false; // 紧迫事件
+      if (_statusFilter == 2 && e.isCompleted) return false; // 待办
+      if (_statusFilter == 3 && !e.isCompleted) return false; // 已攻克
+      if (_suitFilter != null && e.suit != _suitFilter) return false;
       if (_search.isNotEmpty) {
         final q = _search.toLowerCase();
-        if (!t.title.toLowerCase().contains(q) &&
-            !t.description.toLowerCase().contains(q)) {
+        if (!e.title.toLowerCase().contains(q) &&
+            !e.description.toLowerCase().contains(q)) {
           return false;
         }
       }
       return true;
     }).toList();
 
+    // 默认让紧迫事件排在最前
+    filtered.sort((a, b) {
+      if (a.isUrgent && !b.isUrgent) return -1;
+      if (!a.isUrgent && b.isUrgent) return 1;
+      return 0;
+    });
+
+    final urgentTotal = widget.events.where((e) => e.isUrgent && !e.isCompleted).length;
+
     return Scaffold(
       body: Column(
         children: [
-          // Search Box
+          // 搜索框
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
             child: ShadInput(
               controller: _searchCtrl,
-              placeholder: const Text('搜索任务手牌...'),
+              placeholder: const Text('搜索事件手牌...'),
               leading: const Icon(LucideIcons.search, size: 16),
               trailing: _search.isNotEmpty
                   ? ShadIconButton.ghost(
@@ -294,57 +398,26 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
             ),
           ),
 
-          // Status Filters
+          // 状态筛选 Tab
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      _statusFilter == 0
-                          ? ShadButton(
-                              size: ShadButtonSize.sm,
-                              child: const Text('全部'),
-                              onPressed: () {},
-                            )
-                          : ShadButton.ghost(
-                              size: ShadButtonSize.sm,
-                              child: const Text('全部'),
-                              onPressed: () => setState(() => _statusFilter = 0),
-                            ),
-                      const SizedBox(width: 6),
-                      _statusFilter == 1
-                          ? ShadButton(
-                              size: ShadButtonSize.sm,
-                              child: const Text('待打出'),
-                              onPressed: () {},
-                            )
-                          : ShadButton.ghost(
-                              size: ShadButtonSize.sm,
-                              child: const Text('待打出'),
-                              onPressed: () => setState(() => _statusFilter = 1),
-                            ),
-                      const SizedBox(width: 6),
-                      _statusFilter == 2
-                          ? ShadButton(
-                              size: ShadButtonSize.sm,
-                              child: const Text('已攻克'),
-                              onPressed: () {},
-                            )
-                          : ShadButton.ghost(
-                              size: ShadButtonSize.sm,
-                              child: const Text('已攻克'),
-                              onPressed: () => setState(() => _statusFilter = 2),
-                            ),
-                    ],
-                  ),
-                ),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _filterButton(0, '全部'),
+                  const SizedBox(width: 6),
+                  _filterButton(1, '🔥 紧迫事件 ($urgentTotal)', isWarning: true),
+                  const SizedBox(width: 6),
+                  _filterButton(2, '待攻克'),
+                  const SizedBox(width: 6),
+                  _filterButton(3, '已完成'),
+                ],
+              ),
             ),
           ),
 
-          // Suit Chips
+          // 花色筛选
           SizedBox(
             height: 44,
             child: ListView(
@@ -398,7 +471,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
             ),
           ),
 
-          // Task List
+          // 事件卡列表
           Expanded(
             child: filtered.isEmpty
                 ? Center(
@@ -407,13 +480,13 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                       children: [
                         Icon(LucideIcons.inbox, size: 40, color: theme.colorScheme.mutedForeground),
                         const SizedBox(height: 10),
-                        Text('暂无符合条件的手牌', style: theme.textTheme.p),
+                        Text('暂无符合条件的事件卡', style: theme.textTheme.p),
                         const SizedBox(height: 8),
                         ShadButton.outline(
                           size: ShadButtonSize.sm,
                           leading: const Icon(LucideIcons.plus, size: 14),
                           onPressed: () => _showAddEditDialog(context),
-                          child: const Text('新增任务卡牌'),
+                          child: const Text('新增事件卡牌'),
                         ),
                       ],
                     ),
@@ -422,20 +495,20 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
                     itemCount: filtered.length,
                     itemBuilder: (ctx, i) {
-                      final task = filtered[i];
+                      final event = filtered[i];
                       final skill = widget.allSkills.firstWhere(
-                        (s) => s.id == task.requiredSkillId,
+                        (s) => s.id == event.requiredSkillId,
                         orElse: () => SkillCard(
                           id: 'none',
                           name: '通用',
-                          suit: task.suit,
+                          suit: event.suit,
                         ),
                       );
 
-                      final isScheduled = task.scheduledBlockId != null;
+                      final isScheduled = event.scheduledBlockId != null;
                       final block = isScheduled
                           ? widget.timeBlocks.firstWhere(
-                              (b) => b.id == task.scheduledBlockId,
+                              (b) => b.id == event.scheduledBlockId,
                               orElse: () => TimeBlock(
                                 id: '',
                                 title: '未知时间块',
@@ -445,6 +518,8 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                             )
                           : null;
 
+                      final bool isUrgent = event.isUrgent && !event.isCompleted;
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: ShadCard(
@@ -452,41 +527,66 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                           title: Row(
                             children: [
                               ShadCheckbox(
-                                value: task.isCompleted,
-                                onChanged: (_) => widget.onToggleTask(task),
+                                value: event.isCompleted,
+                                onChanged: (_) => widget.onToggleEvent(event),
                               ),
                               const SizedBox(width: 8),
                               ShadBadge.secondary(
                                 child: Text(
-                                  '${task.suit.symbol} ${task.points}点',
+                                  '${event.suit.symbol} ${event.points}点',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: task.suit.color,
+                                    color: event.suit.color,
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 8),
+                              if (isUrgent) ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(LucideIcons.flame, size: 12, color: Colors.redAccent),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        event.countdownString.isNotEmpty ? event.countdownString : '紧迫',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.redAccent,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      task.title,
+                                      event.title,
                                       style: theme.textTheme.p.copyWith(
                                         fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        decoration: task.isCompleted
+                                        fontWeight: isUrgent ? FontWeight.bold : FontWeight.w500,
+                                        decoration: event.isCompleted
                                             ? TextDecoration.lineThrough
                                             : null,
-                                        color: task.isCompleted
+                                        color: event.isCompleted
                                             ? theme.colorScheme.mutedForeground
                                             : null,
                                       ),
                                     ),
-                                    if (task.description.isNotEmpty) ...[
+                                    if (event.description.isNotEmpty) ...[
                                       const SizedBox(height: 2),
                                       Text(
-                                        task.description,
+                                        event.description,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: theme.textTheme.muted.copyWith(fontSize: 11),
@@ -495,25 +595,25 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                                   ],
                                 ),
                               ),
-                              if (!task.isCompleted && !isScheduled)
+                              if (!event.isCompleted && !isScheduled)
                                 ShadButton.outline(
                                   size: ShadButtonSize.sm,
                                   leading: const Icon(LucideIcons.arrowUpRight, size: 14),
-                                  onPressed: () => _showAssignBlockModal(context, task),
+                                  onPressed: () => _showAssignBlockModal(context, event),
                                   child: const Text('出牌'),
                                 ),
                               ShadIconButton.ghost(
                                 icon: const Icon(LucideIcons.trash2, size: 14),
-                                onPressed: () => widget.onDeleteTask(task),
+                                onPressed: () => widget.onDeleteEvent(event),
                               ),
                             ],
                           ),
                           description: Row(
                             children: [
-                              if (task.requiredSkillId != null) ...[
+                              if (event.requiredSkillId != null) ...[
                                 Text(
-                                  '加成: ${skill.name} (LV.${skill.level})',
-                                  style: TextStyle(fontSize: 11, color: task.suit.color),
+                                  '加成技能: ${skill.name} (LV.${skill.level})',
+                                  style: TextStyle(fontSize: 11, color: event.suit.color),
                                 ),
                                 const SizedBox(width: 10),
                               ],
@@ -537,8 +637,26 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddEditDialog(context),
         icon: const Icon(LucideIcons.plus),
-        label: const Text('新增任务卡'),
+        label: const Text('新增事件卡'),
       ),
+    );
+  }
+
+  Widget _filterButton(int index, String label, {bool isWarning = false}) {
+    final isSelected = _statusFilter == index;
+    if (isSelected) {
+      return ShadButton(
+        size: ShadButtonSize.sm,
+        backgroundColor: isWarning ? Colors.redAccent : null,
+        onPressed: () {},
+        child: Text(label),
+      );
+    }
+    return ShadButton.ghost(
+      size: ShadButtonSize.sm,
+      foregroundColor: isWarning ? Colors.redAccent : null,
+      onPressed: () => setState(() => _statusFilter = index),
+      child: Text(label),
     );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 enum CardSuit {
   spades('黑桃', '♠', '技术/心智', Color(0xFF64748B), LucideIcons.spade),
@@ -23,6 +23,9 @@ class SkillCard {
   int exp;
   int maxExp;
   String description;
+  bool isSleepSkill; // 特殊睡眠技能牌
+  int sleepDisciplineScore; // 睡眠自律连续打卡分
+  String? parentTag; // 父级/分类标签
 
   SkillCard({
     required this.id,
@@ -32,6 +35,9 @@ class SkillCard {
     this.exp = 0,
     int? maxExp,
     this.description = '',
+    this.isSleepSkill = false,
+    this.sleepDisciplineScore = 90,
+    this.parentTag,
   }) : maxExp = maxExp ?? (level * 100);
 
   void addExp(int amount) {
@@ -53,6 +59,9 @@ class SkillCard {
     int? exp,
     int? maxExp,
     String? description,
+    bool? isSleepSkill,
+    int? sleepDisciplineScore,
+    String? parentTag,
   }) {
     return SkillCard(
       id: id ?? this.id,
@@ -62,57 +71,80 @@ class SkillCard {
       exp: exp ?? this.exp,
       maxExp: maxExp ?? this.maxExp,
       description: description ?? this.description,
+      isSleepSkill: isSleepSkill ?? this.isSleepSkill,
+      sleepDisciplineScore: sleepDisciplineScore ?? this.sleepDisciplineScore,
+      parentTag: parentTag ?? this.parentTag,
     );
   }
 }
 
-class TaskCard {
+class EventCard {
   final String id;
   String title;
   String description;
   CardSuit suit;
-  int points; // 1~11 (Blackjack energy & difficulty points)
-  String? requiredSkillId;
-  String? scheduledBlockId; // Assigned to which Time Block
+  int points; // 难度/耗能点数 (1~11)
+  bool isUrgent; // 是否为未来紧迫事件卡
+  DateTime? deadline; // 截止倒计时
+  String? scheduledBlockId; // 当前打入的时间块 ID
+  String? requiredSkillId; // 关联技能牌 ID
   bool isCompleted;
-  DateTime? dueDate;
   DateTime createdAt;
 
-  TaskCard({
+  EventCard({
     required this.id,
     required this.title,
     this.description = '',
     required this.suit,
     this.points = 3,
-    this.requiredSkillId,
+    this.isUrgent = false,
+    this.deadline,
     this.scheduledBlockId,
+    this.requiredSkillId,
     this.isCompleted = false,
-    this.dueDate,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
-  TaskCard copyWith({
+  // 计算倒计时状态
+  String get countdownString {
+    if (deadline == null) return '';
+    final now = DateTime.now();
+    final diff = deadline!.difference(now);
+    if (diff.isNegative) {
+      return '已逾期';
+    } else if (diff.inDays > 0) {
+      return '剩余 ${diff.inDays} 天';
+    } else if (diff.inHours > 0) {
+      return '剩余 ${diff.inHours} 小时';
+    } else {
+      return '剩余 ${diff.inMinutes} 分钟';
+    }
+  }
+
+  EventCard copyWith({
     String? id,
     String? title,
     String? description,
     CardSuit? suit,
     int? points,
-    String? requiredSkillId,
+    bool? isUrgent,
+    DateTime? deadline,
     String? scheduledBlockId,
+    String? requiredSkillId,
     bool? isCompleted,
-    DateTime? dueDate,
     DateTime? createdAt,
   }) {
-    return TaskCard(
+    return EventCard(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
       suit: suit ?? this.suit,
       points: points ?? this.points,
-      requiredSkillId: requiredSkillId ?? this.requiredSkillId,
+      isUrgent: isUrgent ?? this.isUrgent,
+      deadline: deadline ?? this.deadline,
       scheduledBlockId: scheduledBlockId ?? this.scheduledBlockId,
+      requiredSkillId: requiredSkillId ?? this.requiredSkillId,
       isCompleted: isCompleted ?? this.isCompleted,
-      dueDate: dueDate ?? this.dueDate,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -123,7 +155,8 @@ class TimeBlock {
   final String title;
   final String timeRange;
   final IconData icon;
-  final int recommendedCapacity; // Maximum recommended points for this slot
+  final int recommendedCapacity; // 建议容量
+  String? activeSkillId; // 【技能卡槽】：当前时间块挂载的主打技能牌
 
   TimeBlock({
     required this.id,
@@ -131,5 +164,24 @@ class TimeBlock {
     required this.timeRange,
     required this.icon,
     this.recommendedCapacity = 7,
+    this.activeSkillId,
   });
+
+  TimeBlock copyWith({
+    String? id,
+    String? title,
+    String? timeRange,
+    IconData? icon,
+    int? recommendedCapacity,
+    String? activeSkillId,
+  }) {
+    return TimeBlock(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      timeRange: timeRange ?? this.timeRange,
+      icon: icon ?? this.icon,
+      recommendedCapacity: recommendedCapacity ?? this.recommendedCapacity,
+      activeSkillId: activeSkillId ?? this.activeSkillId,
+    );
+  }
 }
