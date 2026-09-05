@@ -1,4 +1,4 @@
-name: Release Life-Poker
+﻿name: Release Life-Poker
 
 on:
   push:
@@ -8,20 +8,52 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: '发布版本号 (例如 v0.0.4)'
-        required: true
-        default: 'v0.0.4'
+        description: '版本标签（选填，直接留空则根据项目版本自动发布）'
+        required: false
+        default: ''
         type: string
-
-env:
-  RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
 
 permissions:
   contents: write
 
 jobs:
+  prepare-version:
+    name: Prepare Version
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.get_version.outputs.tag }}
+      release_name: ${{ steps.get_version.outputs.name }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Version Tag
+        id: get_version
+        run: |
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            PUBSPEC_VER=$(grep '^version:' pubspec.yaml | sed 's/version:[[:space:]]*//' | cut -d '+' -f 1 | tr -d '\r\n ')
+            if [ -z "$PUBSPEC_VER" ]; then
+              PUBSPEC_VER="0.0.4"
+            fi
+            if git rev-parse "v$PUBSPEC_VER" >/dev/null 2>&1; then
+              TAG="v$PUBSPEC_VER-build.${{ github.run_number }}"
+            else
+              TAG="v$PUBSPEC_VER"
+            fi
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "name=Release $TAG" >> $GITHUB_OUTPUT
+          echo "Determined release tag: $TAG"
+
   build-android:
     name: Build Android APK
+    needs: [prepare-version]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -61,16 +93,17 @@ jobs:
       - name: Prepare APK Asset
         run: |
           mkdir -p release-assets
-          cp build/app/outputs/flutter-apk/app-release.apk release-assets/life-poker-android-${{ env.RELEASE_TAG }}.apk
+          cp build/app/outputs/flutter-apk/app-release.apk "release-assets/life-poker-android-${{ needs.prepare-version.outputs.release_tag }}.apk"
 
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: release-assets/life-poker-android-${{ env.RELEASE_TAG }}.apk
+          path: release-assets/life-poker-android-${{ needs.prepare-version.outputs.release_tag }}.apk
 
   build-windows:
     name: Build Windows Desktop
+    needs: [prepare-version]
     runs-on: windows-latest
     steps:
       - name: Checkout Code
@@ -92,16 +125,17 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release-assets -Force
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "release-assets\life-poker-windows-${{ env.RELEASE_TAG }}.zip" -Force
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "release-assets\life-poker-windows-${{ needs.prepare-version.outputs.release_tag }}.zip" -Force
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-zip
-          path: release-assets/life-poker-windows-${{ env.RELEASE_TAG }}.zip
+          path: release-assets/life-poker-windows-${{ needs.prepare-version.outputs.release_tag }}.zip
 
   build-web:
     name: Build Web App
+    needs: [prepare-version]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -122,17 +156,17 @@ jobs:
       - name: Package Web App
         run: |
           mkdir -p release-assets
-          cd build/web && zip -r ../../release-assets/life-poker-web-${{ env.RELEASE_TAG }}.zip .
+          cd build/web && zip -r "../../release-assets/life-poker-web-${{ needs.prepare-version.outputs.release_tag }}.zip" .
 
       - name: Upload Web Artifact
         uses: actions/upload-artifact@v4
         with:
           name: web-zip
-          path: release-assets/life-poker-web-${{ env.RELEASE_TAG }}.zip
+          path: release-assets/life-poker-web-${{ needs.prepare-version.outputs.release_tag }}.zip
 
   publish-release:
     name: Publish GitHub Release
-    needs: [build-android, build-windows, build-web]
+    needs: [prepare-version, build-android, build-windows, build-web]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -150,8 +184,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ env.RELEASE_TAG }}
-          tag_name: ${{ env.RELEASE_TAG }}
+          name: ${{ needs.prepare-version.outputs.release_name }}
+          tag_name: ${{ needs.prepare-version.outputs.release_tag }}
           draft: false
           prerelease: false
           generate_release_notes: true
