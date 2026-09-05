@@ -3,14 +3,18 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 import '../widgets/skill_card_widget.dart';
 
+import '../models/inventory_item.dart';
+
 class SkillDeckScreen extends StatefulWidget {
   final List<SkillCard> skills;
+  final List<InventoryItem> inventoryItems;
   final ValueChanged<SkillCard> onAddSkill;
   final ValueChanged<SkillCard> onTrainSkill;
 
   const SkillDeckScreen({
     super.key,
     required this.skills,
+    this.inventoryItems = const [],
     required this.onAddSkill,
     required this.onTrainSkill,
   });
@@ -220,8 +224,13 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                     itemCount: filteredSkills.length,
                     itemBuilder: (ctx, i) {
                       final skill = filteredSkills[i];
+                      final skillEquippedAssets = widget.inventoryItems
+                          .where((item) => item.isAsset && item.boundSkillId == skill.id)
+                          .toList();
+
                       return SkillCardWidget(
                         skill: skill,
+                        equippedAssets: skillEquippedAssets,
                         onTrain: () => widget.onTrainSkill(skill),
                       );
                     },

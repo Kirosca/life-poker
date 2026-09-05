@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
+import '../models/inventory_item.dart';
 
 class TimeBlockSlot extends StatelessWidget {
   final TimeBlock block;
   final SkillCard? equippedSkill;
   final List<EventCard> events;
   final List<SkillCard> allSkills;
+  final List<InventoryItem> allConsumables;
+  final List<InventoryItem> equippedAssets;
   final VoidCallback onEquipSkill;
   final VoidCallback onAddEvent;
   final ValueChanged<EventCard> onToggleEvent;
   final ValueChanged<EventCard> onRemoveEventFromBlock;
+  final ValueChanged<InventoryItem>? onUseConsumable;
   final VoidCallback? onSleepDisciplineCheck;
 
   const TimeBlockSlot({
@@ -19,10 +23,13 @@ class TimeBlockSlot extends StatelessWidget {
     required this.equippedSkill,
     required this.events,
     required this.allSkills,
+    this.allConsumables = const [],
+    this.equippedAssets = const [],
     required this.onEquipSkill,
     required this.onAddEvent,
     required this.onToggleEvent,
     required this.onRemoveEventFromBlock,
+    this.onUseConsumable,
     this.onSleepDisciplineCheck,
   });
 
@@ -92,82 +99,117 @@ class TimeBlockSlot extends StatelessWidget {
                         : theme.colorScheme.border,
                   ),
                   color: equippedSkill != null
-                      ? equippedSkill!.suit.color.withValues(alpha: 0.05)
+                       ? equippedSkill!.suit.color.withValues(alpha: 0.05)
                       : theme.colorScheme.muted.withValues(alpha: 0.15),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (equippedSkill != null) ...[
-                      Icon(
-                        isSleepBlock ? LucideIcons.moon : equippedSkill!.suit.icon,
-                        size: 20,
-                        color: equippedSkill!.suit.color,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                    Row(
+                      children: [
+                        if (equippedSkill != null) ...[
+                          Icon(
+                            isSleepBlock ? LucideIcons.moon : equippedSkill!.suit.icon,
+                            size: 20,
+                            color: equippedSkill!.suit.color,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  isSleepBlock ? '🌙 睡眠恢复与自律' : equippedSkill!.name,
-                                  style: theme.textTheme.p.copyWith(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      isSleepBlock ? '🌙 睡眠恢复与自律' : equippedSkill!.name,
+                                      style: theme.textTheme.p.copyWith(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    ShadBadge.secondary(
+                                      child: Text(
+                                        isSleepBlock
+                                            ? '自律分 ${equippedSkill!.sleepDisciplineScore}'
+                                            : 'LV.${equippedSkill!.level}',
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 6),
-                                ShadBadge.secondary(
-                                  child: Text(
-                                    isSleepBlock
-                                        ? '自律分 ${equippedSkill!.sleepDisciplineScore}'
-                                        : 'LV.${equippedSkill!.level}',
-                                    style: const TextStyle(fontSize: 10),
-                                  ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  isSleepBlock
+                                      ? '纪律达标将激活明日全技能精力充沛状态'
+                                      : '攻克本时间块事件将注入经验至此技能',
+                                  style: theme.textTheme.muted.copyWith(fontSize: 11),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              isSleepBlock
-                                  ? '纪律达标将激活明日全技能精力充沛状态'
-                                  : '攻克本时间块事件将注入经验至此技能',
-                              style: theme.textTheme.muted.copyWith(fontSize: 11),
+                          ),
+                          if (isSleepBlock && onSleepDisciplineCheck != null)
+                            ShadButton.outline(
+                              size: ShadButtonSize.sm,
+                              leading: const Icon(LucideIcons.checkCheck, size: 14),
+                              onPressed: onSleepDisciplineCheck,
+                              child: const Text('打卡'),
+                            )
+                          else
+                            ShadButton.ghost(
+                              size: ShadButtonSize.sm,
+                              onPressed: onEquipSkill,
+                              child: const Text('更换技能'),
                             ),
-                          ],
-                        ),
-                      ),
-                      if (isSleepBlock && onSleepDisciplineCheck != null)
-                        ShadButton.outline(
-                          size: ShadButtonSize.sm,
-                          leading: const Icon(LucideIcons.checkCheck, size: 14),
-                          onPressed: onSleepDisciplineCheck,
-                          child: const Text('打卡'),
-                        )
-                      else
-                        ShadButton.ghost(
-                          size: ShadButtonSize.sm,
-                          onPressed: onEquipSkill,
-                          child: const Text('更换技能'),
-                        ),
-                    ] else ...[
-                      Icon(
-                        LucideIcons.sparkles,
-                        size: 18,
-                        color: theme.colorScheme.mutedForeground,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '未装配主打技能牌 (点击装配为事件提供经验加成)',
-                          style: theme.textTheme.muted.copyWith(fontSize: 12),
-                        ),
-                      ),
-                      ShadButton.outline(
-                        size: ShadButtonSize.sm,
-                        onPressed: onEquipSkill,
-                        child: const Text('装配技能'),
+                        ] else ...[
+                          Icon(
+                            LucideIcons.sparkles,
+                            size: 18,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '未装配主打技能牌 (点击装配为事件提供经验加成)',
+                              style: theme.textTheme.muted.copyWith(fontSize: 12),
+                            ),
+                          ),
+                          ShadButton.outline(
+                            size: ShadButtonSize.sm,
+                            onPressed: onEquipSkill,
+                            child: const Text('装配技能'),
+                          ),
+                        ],
+                      ],
+                    ),
+
+                    // 显示装备在此技能上的固定资产徽章 (Phase 2)
+                    if (equippedAssets.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: equippedAssets.map((asset) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3B82F6).withAlpha(30),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0xFF3B82F6).withAlpha(80)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(asset.icon, size: 11, color: const Color(0xFF60A5FA)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${asset.name} (${asset.buffEffect ?? "已装配"})',
+                                  style: const TextStyle(fontSize: 10, color: Color(0xFF93C5FD), fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ],
@@ -327,10 +369,119 @@ class TimeBlockSlot extends StatelessWidget {
                   );
                 }),
               ],
+
+              // ===================== 【槽位 3：补给与消耗品槽 (Phase 2)】 =====================
+              const SizedBox(height: 10),
+              _buildConsumablesSection(context),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildConsumablesSection(BuildContext context) {
+    // 找出当前块使用的消耗品
+    final usedItems = allConsumables.where((item) => block.usedConsumableIds.contains(item.id)).toList();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF27272A).withAlpha(120),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withAlpha(15)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                const Icon(LucideIcons.coffee, size: 14, color: Color(0xFFF59E0B)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: usedItems.isEmpty
+                      ? const Text(
+                          '未打出补给耗材 (如咖啡/维生素/润喉糖)',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF71717A)),
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      : Wrap(
+                          spacing: 6,
+                          children: usedItems.map((item) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF59E0B).withAlpha(30),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFFF59E0B).withAlpha(70)),
+                              ),
+                              child: Text(
+                                '⚡ ${item.name}',
+                                style: const TextStyle(fontSize: 10, color: Color(0xFFFBBF24), fontWeight: FontWeight.bold),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                ),
+              ],
+            ),
+          ),
+          if (onUseConsumable != null)
+            ShadButton.ghost(
+              size: ShadButtonSize.sm,
+              leading: const Icon(LucideIcons.sparkle, size: 12),
+              onPressed: () => _openUseConsumableDialog(context),
+              child: const Text('打出补给', style: TextStyle(fontSize: 11)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _openUseConsumableDialog(BuildContext context) {
+    final available = allConsumables.where((item) => item.quantity > 0).toList();
+
+    showShadDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return ShadDialog(
+          title: const Text('从生活背包打出补给道具'),
+          description: Text('为当前【${block.title}】打出消耗品，获得精力/专注增益。'),
+          actions: [
+            ShadButton.outline(
+              child: const Text('取消'),
+              onPressed: () => Navigator.of(dialogCtx).pop(),
+            ),
+          ],
+          child: available.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: Text('背包中暂无可用消耗品，请前往「金库资产」登记或补货', style: TextStyle(color: Color(0xFF71717A))),
+                  ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: available.map((item) {
+                    final bool alreadyUsed = block.usedConsumableIds.contains(item.id);
+                    return ListTile(
+                      leading: Icon(item.icon, color: const Color(0xFFFBBF24)),
+                      title: Text(item.name),
+                      subtitle: Text('存量: ${item.quantity} ${item.unit} · ${item.buffEffect ?? "提神增益"}'),
+                      trailing: ShadButton.outline(
+                        size: ShadButtonSize.sm,
+                        child: Text(alreadyUsed ? '再次打出' : '打出使用'),
+                        onPressed: () {
+                          Navigator.of(dialogCtx).pop();
+                          onUseConsumable?.call(item);
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+        );
+      },
     );
   }
 }

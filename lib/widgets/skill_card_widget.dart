@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 
+import '../models/inventory_item.dart';
+
 class SkillCardWidget extends StatelessWidget {
   final SkillCard skill;
+  final List<InventoryItem> equippedAssets;
   final VoidCallback? onTrain;
   final VoidCallback? onTap;
 
   const SkillCardWidget({
     super.key,
     required this.skill,
+    this.equippedAssets = const [],
     this.onTrain,
     this.onTap,
   });
@@ -97,6 +101,34 @@ class SkillCardWidget extends StatelessWidget {
               value: skill.progress,
               minHeight: 6,
             ),
+            if (equippedAssets.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: equippedAssets.map((asset) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6).withAlpha(25),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0xFF3B82F6).withAlpha(70)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(asset.icon, size: 10, color: const Color(0xFF60A5FA)),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${asset.name} · ${asset.buffEffect ?? "装备中"}',
+                          style: const TextStyle(fontSize: 10, color: Color(0xFF93C5FD)),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ],
         ),
       ),

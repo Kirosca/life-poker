@@ -26,6 +26,7 @@ class SkillCard {
   bool isSleepSkill; // 特殊睡眠技能牌
   int sleepDisciplineScore; // 睡眠自律连续打卡分
   String? parentTag; // 父级/分类标签
+  List<String> equippedAssetIds; // 装备的固定资产 ID 列表
 
   SkillCard({
     required this.id,
@@ -38,7 +39,9 @@ class SkillCard {
     this.isSleepSkill = false,
     this.sleepDisciplineScore = 90,
     this.parentTag,
-  }) : maxExp = maxExp ?? (level * 100);
+    List<String>? equippedAssetIds,
+  })  : maxExp = maxExp ?? (level * 100),
+        equippedAssetIds = equippedAssetIds ?? [];
 
   void addExp(int amount) {
     exp += amount;
@@ -62,6 +65,7 @@ class SkillCard {
     bool? isSleepSkill,
     int? sleepDisciplineScore,
     String? parentTag,
+    List<String>? equippedAssetIds,
   }) {
     return SkillCard(
       id: id ?? this.id,
@@ -74,6 +78,7 @@ class SkillCard {
       isSleepSkill: isSleepSkill ?? this.isSleepSkill,
       sleepDisciplineScore: sleepDisciplineScore ?? this.sleepDisciplineScore,
       parentTag: parentTag ?? this.parentTag,
+      equippedAssetIds: equippedAssetIds ?? List.from(this.equippedAssetIds),
     );
   }
 }
@@ -157,6 +162,7 @@ class TimeBlock {
   final IconData icon;
   final int recommendedCapacity; // 建议容量
   String? activeSkillId; // 【技能卡槽】：当前时间块挂载的主打技能牌
+  List<String> usedConsumableIds; // 【消耗品道具槽】：当前时间块已使用的消耗品
 
   TimeBlock({
     required this.id,
@@ -165,7 +171,8 @@ class TimeBlock {
     required this.icon,
     this.recommendedCapacity = 7,
     this.activeSkillId,
-  });
+    List<String>? usedConsumableIds,
+  }) : usedConsumableIds = usedConsumableIds ?? [];
 
   TimeBlock copyWith({
     String? id,
@@ -174,6 +181,7 @@ class TimeBlock {
     IconData? icon,
     int? recommendedCapacity,
     String? activeSkillId,
+    List<String>? usedConsumableIds,
   }) {
     return TimeBlock(
       id: id ?? this.id,
@@ -182,6 +190,7 @@ class TimeBlock {
       icon: icon ?? this.icon,
       recommendedCapacity: recommendedCapacity ?? this.recommendedCapacity,
       activeSkillId: activeSkillId ?? this.activeSkillId,
+      usedConsumableIds: usedConsumableIds ?? List.from(this.usedConsumableIds),
     );
   }
 }

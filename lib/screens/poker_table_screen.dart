@@ -3,14 +3,18 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 import '../widgets/time_block_slot.dart';
 
+import '../models/inventory_item.dart';
+
 class PokerTableScreen extends StatelessWidget {
   final List<TimeBlock> timeBlocks;
   final List<EventCard> allEvents;
   final List<SkillCard> allSkills;
+  final List<InventoryItem> inventoryItems;
   final ValueChanged<EventCard> onToggleEvent;
   final Function(String blockId, EventCard event) onAssignEventToBlock;
   final ValueChanged<EventCard> onRemoveEventFromBlock;
   final Function(String blockId, String skillId) onEquipSkillToBlock;
+  final Function(String blockId, InventoryItem item)? onUseConsumableInBlock;
   final VoidCallback onNightlyPrep;
   final VoidCallback onSleepCheckIn;
 
@@ -19,10 +23,12 @@ class PokerTableScreen extends StatelessWidget {
     required this.timeBlocks,
     required this.allEvents,
     required this.allSkills,
+    this.inventoryItems = const [],
     required this.onToggleEvent,
     required this.onAssignEventToBlock,
     required this.onRemoveEventFromBlock,
     required this.onEquipSkillToBlock,
+    this.onUseConsumableInBlock,
     required this.onNightlyPrep,
     required this.onSleepCheckIn,
   });
@@ -360,16 +366,25 @@ class PokerTableScreen extends StatelessWidget {
           );
 
           final hasEquipped = block.activeSkillId != null;
+          final allConsumables = inventoryItems.where((i) => i.isConsumable).toList();
+          final equippedAssets = hasEquipped
+              ? inventoryItems.where((i) => i.isAsset && i.boundSkillId == equippedSkill.id).toList()
+              : <InventoryItem>[];
 
           return TimeBlockSlot(
             block: block,
             equippedSkill: hasEquipped ? equippedSkill : null,
             events: blockEvents,
             allSkills: allSkills,
+            allConsumables: allConsumables,
+            equippedAssets: equippedAssets,
             onEquipSkill: () => _showEquipSkillSheet(context, block),
             onAddEvent: () => _showAddEventSheet(context, block),
             onToggleEvent: onToggleEvent,
             onRemoveEventFromBlock: onRemoveEventFromBlock,
+            onUseConsumable: onUseConsumableInBlock != null
+                ? (item) => onUseConsumableInBlock!(block.id, item)
+                : null,
             onSleepDisciplineCheck: onSleepCheckIn,
           );
         }),

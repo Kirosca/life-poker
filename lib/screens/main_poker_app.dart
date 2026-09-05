@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
+import '../models/inventory_item.dart';
 import 'poker_table_screen.dart';
 import 'task_deck_screen.dart';
 import 'skill_deck_screen.dart';
+import 'vault_inventory_screen.dart';
 import 'blackjack_game_screen.dart';
 
 class MainPokerAppScreen extends StatefulWidget {
@@ -22,6 +24,11 @@ class MainPokerAppScreen extends StatefulWidget {
 
 class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
   int _currentTabIndex = 0;
+
+  // 资产、消耗品背包与资金账户 (Phase 2)
+  final List<InventoryItem> _inventoryItems = DefaultInventoryData.getInitialItems();
+  final List<TransactionRecord> _transactions = DefaultInventoryData.getInitialTransactions();
+  double _cashBalance = 15800.0;
 
   // 技能卡组 (包含普通技能与特殊睡眠技能卡)
   final List<SkillCard> _skills = [
@@ -286,6 +293,110 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     });
   }
 
+  // ===================== 【资金与资产背包操作 (Phase 2)】 =====================
+  void _onAddInventoryItem(InventoryItem item) {
+    setState(() {
+      _inventoryItems.add(item);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('已成功登记新物品: 【${item.name}】')),
+    );
+  }
+
+  void _onUpdateInventoryItem(InventoryItem item) {
+    setState(() {
+      final idx = _inventoryItems.indexWhere((i) => i.id == item.id);
+      if (idx != -1) {
+        _inventoryItems[idx] = item;
+      }
+    });
+  }
+
+  void _onDeleteInventoryItem(String itemId) {
+    setState(() {
+      _inventoryItems.removeWhere((i) => i.id == itemId);
+    });
+  }
+
+  void _onAddTransaction(TransactionRecord tx) {
+    setState(() {
+      _transactions.insert(0, tx);
+      if (tx.type == TransactionType.income) {
+        _cashBalance += tx.amount;
+      } else {
+        _cashBalance -= tx.amount;
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('已入账: ${tx.title} (¥${tx.amount.toStringAsFixed(2)})')),
+    );
+  }
+
+  void _onBindAssetToSkill(String assetId, String? skillId) {
+    setState(() {
+      final itemIdx = _inventoryItems.indexWhere((i) => i.id == assetId);
+      if (itemIdx != -1) {
+        final oldSkillId = _inventoryItems[itemIdx].boundSkillId;
+        _inventoryItems[itemIdx] = _inventoryItems[itemIdx].copyWith(
+          boundSkillId: skillId,
+          unbindSkill: skillId == null,
+        );
+
+        // 更新技能列表中的 equippedAssetIds
+        if (oldSkillId != null) {
+          final oldSkillIdx = _skills.indexWhere((s) => s.id == oldSkillId);
+          if (oldSkillIdx != -1) {
+            _skills[oldSkillIdx].equippedAssetIds.remove(assetId);
+          }
+        }
+        if (skillId != null) {
+          final newSkillIdx = _skills.indexWhere((s) => s.id == skillId);
+          if (newSkillIdx != -1 && !_skills[newSkillIdx].equippedAssetIds.contains(assetId)) {
+            _skills[newSkillIdx].equippedAssetIds.add(assetId);
+          }
+        }
+      }
+    });
+
+    final asset = _inventoryItems.firstWhere((i) => i.id == assetId);
+    final targetSkill = skillId != null ? _skills.firstWhere((s) => s.id == skillId) : null;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          targetSkill != null
+              ? '已将【${asset.name}】装备到技能【${targetSkill.name}】！'
+              : '已卸下【${asset.name}】',
+        ),
+      ),
+    );
+  }
+
+  void _onUseConsumableInBlock(String blockId, InventoryItem item) {
+    if (item.quantity <= 0) return;
+
+    setState(() {
+      // 1. 消耗品数量 -1
+      final itemIdx = _inventoryItems.indexWhere((i) => i.id == item.id);
+      if (itemIdx != -1) {
+        _inventoryItems[itemIdx] = item.copyWith(quantity: item.quantity - 1);
+      }
+
+      // 2. 将消耗品打入时间块
+      final blockIdx = _timeBlocks.indexWhere((b) => b.id == blockId);
+      if (blockIdx != -1) {
+        if (!_timeBlocks[blockIdx].usedConsumableIds.contains(item.id)) {
+          _timeBlocks[blockIdx].usedConsumableIds.add(item.id);
+        }
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('⚡ 在【${_timeBlocks.firstWhere((b) => b.id == blockId).title}】打出【${item.name}】！获得增益状态！'),
+      ),
+    );
+  }
+
   // 晚间备战明日 (Nightly Prep) 对话框
   void _openNightlyPrepDialog() {
     final urgentPending = _events.where((e) => e.isUrgent && !e.isCompleted).toList();
@@ -466,10 +577,12 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           timeBlocks: _timeBlocks,
           allEvents: _events,
           allSkills: _skills,
+          inventoryItems: _inventoryItems,
           onToggleEvent: _toggleEvent,
           onAssignEventToBlock: _assignEventToBlock,
           onRemoveEventFromBlock: _removeEventFromBlock,
           onEquipSkillToBlock: _equipSkillToBlock,
+          onUseConsumableInBlock: _onUseConsumableInBlock,
           onNightlyPrep: _openNightlyPrepDialog,
           onSleepCheckIn: _openSleepDisciplineDialog,
         );
@@ -488,11 +601,25 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       case 2:
         body = SkillDeckScreen(
           skills: _skills,
+          inventoryItems: _inventoryItems,
           onAddSkill: _addSkill,
           onTrainSkill: _trainSkill,
         );
         break;
       case 3:
+        body = VaultInventoryScreen(
+          inventoryItems: _inventoryItems,
+          skillCards: _skills,
+          transactions: _transactions,
+          cashBalance: _cashBalance,
+          onAddItem: _onAddInventoryItem,
+          onUpdateItem: _onUpdateInventoryItem,
+          onDeleteItem: _onDeleteInventoryItem,
+          onAddTransaction: _onAddTransaction,
+          onBindAssetToSkill: _onBindAssetToSkill,
+        );
+        break;
+      case 4:
       default:
         // 独立的 21点休闲小游戏
         body = const BlackjackGameScreen();
@@ -545,6 +672,10 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           NavigationDestination(
             icon: Icon(LucideIcons.sparkles),
             label: '技能卡组',
+          ),
+          NavigationDestination(
+            icon: Icon(LucideIcons.coins),
+            label: '金库资产',
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.gamepad2),
