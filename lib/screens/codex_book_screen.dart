@@ -196,66 +196,117 @@ class _CodexBookScreenState extends State<CodexBookScreen> {
     int sopCount,
     int insightCount,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            _selectedDomain.color.withAlpha(45),
-            _selectedDomain.color.withAlpha(10),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _selectedDomain.color.withAlpha(70)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _selectedDomain.color.withAlpha(40),
-              borderRadius: BorderRadius.circular(12),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 650;
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                _selectedDomain.color.withAlpha(45),
+                _selectedDomain.color.withAlpha(10),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            child: Icon(_selectedDomain.icon, size: 32, color: _selectedDomain.color),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _selectedDomain.color.withAlpha(70)),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: isNarrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _selectedDomain.title,
-                      style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: _selectedDomain.color.withAlpha(40),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(_selectedDomain.icon, size: 24, color: _selectedDomain.color),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _selectedDomain.title,
+                                style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                _selectedDomain.description,
+                                style: theme.textTheme.muted.copyWith(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    ShadBadge.secondary(
-                      child: Text('$totalCount 篇准则/笔记'),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        _buildMiniBadge(RuleLevel.iron, '$ironCount 条铁律'),
+                        _buildMiniBadge(RuleLevel.sop, '$sopCount 条SOP'),
+                        _buildMiniBadge(RuleLevel.insight, '$insightCount 篇笔记'),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _selectedDomain.color.withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(_selectedDomain.icon, size: 32, color: _selectedDomain.color),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                _selectedDomain.title,
+                                style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(width: 10),
+                              ShadBadge.secondary(
+                                child: Text('$totalCount 篇准则/笔记'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _selectedDomain.description,
+                            style: theme.textTheme.muted.copyWith(fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        _buildMiniBadge(RuleLevel.iron, '$ironCount 条铁律'),
+                        _buildMiniBadge(RuleLevel.sop, '$sopCount 条SOP'),
+                        _buildMiniBadge(RuleLevel.insight, '$insightCount 篇笔记'),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  _selectedDomain.description,
-                  style: theme.textTheme.muted.copyWith(fontSize: 13),
-                ),
-              ],
-            ),
-          ),
-          Wrap(
-            spacing: 8,
-            children: [
-              _buildMiniBadge(RuleLevel.iron, '$ironCount 条铁律'),
-              _buildMiniBadge(RuleLevel.sop, '$sopCount 条SOP'),
-              _buildMiniBadge(RuleLevel.insight, '$insightCount 篇笔记'),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -279,35 +330,71 @@ class _CodexBookScreenState extends State<CodexBookScreen> {
   }
 
   Widget _buildFilterBar(ShadThemeData theme) {
-    return Row(
-      children: [
-        // Search
-        Expanded(
-          child: ShadInput(
-            placeholder: const Text('搜索准则标题、内容、标签...'),
-            leading: const Icon(LucideIcons.search, size: 16),
-            onChanged: (val) => setState(() => _searchQuery = val),
-          ),
-        ),
-        const SizedBox(width: 12),
-
-        // Level Filters
-        _buildFilterPill('全部', _selectedLevelFilter == null, () {
-          setState(() => _selectedLevelFilter = null);
-        }),
-        const SizedBox(width: 6),
-        _buildFilterPill('🔴 铁律', _selectedLevelFilter == RuleLevel.iron, () {
-          setState(() => _selectedLevelFilter = RuleLevel.iron);
-        }),
-        const SizedBox(width: 6),
-        _buildFilterPill('🟡 SOP', _selectedLevelFilter == RuleLevel.sop, () {
-          setState(() => _selectedLevelFilter = RuleLevel.sop);
-        }),
-        const SizedBox(width: 6),
-        _buildFilterPill('🟢 笔记', _selectedLevelFilter == RuleLevel.insight, () {
-          setState(() => _selectedLevelFilter = RuleLevel.insight);
-        }),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 650;
+        return isNarrow
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ShadInput(
+                    placeholder: const Text('搜索准则标题、内容、标签...'),
+                    leading: const Icon(LucideIcons.search, size: 16),
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                  ),
+                  const SizedBox(height: 10),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildFilterPill('全部', _selectedLevelFilter == null, () {
+                          setState(() => _selectedLevelFilter = null);
+                        }),
+                        const SizedBox(width: 6),
+                        _buildFilterPill('🔴 铁律', _selectedLevelFilter == RuleLevel.iron, () {
+                          setState(() => _selectedLevelFilter = RuleLevel.iron);
+                        }),
+                        const SizedBox(width: 6),
+                        _buildFilterPill('🟡 SOP', _selectedLevelFilter == RuleLevel.sop, () {
+                          setState(() => _selectedLevelFilter = RuleLevel.sop);
+                        }),
+                        const SizedBox(width: 6),
+                        _buildFilterPill('🟢 笔记', _selectedLevelFilter == RuleLevel.insight, () {
+                          setState(() => _selectedLevelFilter = RuleLevel.insight);
+                        }),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Expanded(
+                    child: ShadInput(
+                      placeholder: const Text('搜索准则标题、内容、标签...'),
+                      leading: const Icon(LucideIcons.search, size: 16),
+                      onChanged: (val) => setState(() => _searchQuery = val),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  _buildFilterPill('全部', _selectedLevelFilter == null, () {
+                    setState(() => _selectedLevelFilter = null);
+                  }),
+                  const SizedBox(width: 6),
+                  _buildFilterPill('🔴 铁律', _selectedLevelFilter == RuleLevel.iron, () {
+                    setState(() => _selectedLevelFilter = RuleLevel.iron);
+                  }),
+                  const SizedBox(width: 6),
+                  _buildFilterPill('🟡 SOP', _selectedLevelFilter == RuleLevel.sop, () {
+                    setState(() => _selectedLevelFilter = RuleLevel.sop);
+                  }),
+                  const SizedBox(width: 6),
+                  _buildFilterPill('🟢 笔记', _selectedLevelFilter == RuleLevel.insight, () {
+                    setState(() => _selectedLevelFilter = RuleLevel.insight);
+                  }),
+                ],
+              );
+      },
     );
   }
 
@@ -632,10 +719,9 @@ class _CodexBookScreenState extends State<CodexBookScreen> {
               onPressed: () {
                 widget.onCreateEventFromCodex(entry, entry.title);
                 Navigator.pop(ctx);
-                ShadToaster.of(context).show(
-                  ShadToast(
-                    title: const Text('已打入事件手牌库！'),
-                    description: Text('准则「${entry.title}」已生成为事件卡牌。'),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('已打入事件手牌库！准则「${entry.title}」已生成为事件卡牌。'),
                   ),
                 );
               },

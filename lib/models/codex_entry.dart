@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 enum CodexDomain {
@@ -145,8 +145,8 @@ class CodexEntry {
           '午餐严格遵守“菜 -> 肉 -> 碳水”就餐顺序',
           '下午 3 点后绝不摄入高精制糖奶茶或甜点',
         ],
-        relatedSkillId: 's3',
-        relatedAssetIds: ['c1'],
+        relatedSkillId: 'skill_3',
+        relatedAssetIds: [],
       ),
       CodexEntry(
         id: 'codex_food_2',
@@ -186,8 +186,8 @@ class CodexEntry {
           '显示器仰角微调 5 度，颈椎无低头受力感',
           '工学椅腰靠精准贴合腰椎 L3-L5 区域',
         ],
-        relatedSkillId: 's1',
-        relatedAssetIds: ['a2'],
+        relatedSkillId: 'skill_1',
+        relatedAssetIds: ['asset_2'],
       ),
       CodexEntry(
         id: 'codex_house_2',
@@ -206,8 +206,8 @@ class CodexEntry {
           '入睡前开窗换气 10 分钟或开启新风',
           '手机放置在书房充电，严禁带入枕边',
         ],
-        relatedSkillId: 's4',
-        relatedAssetIds: ['c3'],
+        relatedSkillId: 'skill_sleep',
+        relatedAssetIds: [],
       ),
 
       // ----------------- 行之书 -----------------
@@ -231,7 +231,7 @@ class CodexEntry {
           '确认所有充电宝容量符合民航安检标准(<100Wh)',
         ],
         relatedSkillId: null,
-        relatedAssetIds: ['a1', 'a3'],
+        relatedAssetIds: ['asset_1', 'asset_3'],
       ),
       CodexEntry(
         id: 'codex_travel_2',
@@ -249,8 +249,8 @@ class CodexEntry {
           '地铁进站前开启降噪耳机抗风噪模式',
           '步行段维持大步快走速度，激活晨间多巴胺',
         ],
-        relatedSkillId: 's3',
-        relatedAssetIds: ['a3'],
+        relatedSkillId: 'skill_3',
+        relatedAssetIds: ['asset_3'],
       ),
     ];
   }
