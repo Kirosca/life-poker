@@ -15,6 +15,52 @@ enum CardSuit {
   const CardSuit(this.label, this.symbol, this.domain, this.color, this.icon);
 }
 
+class SkillEvolutionOption {
+  final String id;
+  final String name;
+  final String description;
+  final CardSuit suit;
+  final int requiredParentLevel;
+  final String buffDescription;
+
+  const SkillEvolutionOption({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.suit,
+    this.requiredParentLevel = 3,
+    required this.buffDescription,
+  });
+}
+
+class SleepDisciplineState {
+  int streakDays;
+  int disciplineScore;
+  bool isNextDayBoostActive;
+  DateTime? lastSettlementDate;
+
+  SleepDisciplineState({
+    this.streakDays = 3,
+    this.disciplineScore = 92,
+    this.isNextDayBoostActive = true,
+    this.lastSettlementDate,
+  });
+
+  SleepDisciplineState copyWith({
+    int? streakDays,
+    int? disciplineScore,
+    bool? isNextDayBoostActive,
+    DateTime? lastSettlementDate,
+  }) {
+    return SleepDisciplineState(
+      streakDays: streakDays ?? this.streakDays,
+      disciplineScore: disciplineScore ?? this.disciplineScore,
+      isNextDayBoostActive: isNextDayBoostActive ?? this.isNextDayBoostActive,
+      lastSettlementDate: lastSettlementDate ?? this.lastSettlementDate,
+    );
+  }
+}
+
 class SkillCard {
   final String id;
   String name;
@@ -27,6 +73,9 @@ class SkillCard {
   int sleepDisciplineScore; // 睡眠自律连续打卡分
   String? parentTag; // 父级/分类标签
   List<String> equippedAssetIds; // 装备的固定资产 ID 列表
+  String? evolvedFromSkillId; // 演化自哪张父级技能
+  String? buffDescription; // 演化专精带来的被动效果
+  List<SkillEvolutionOption> evolutionOptions; // 可演化分支列表
 
   SkillCard({
     required this.id,
@@ -40,11 +89,19 @@ class SkillCard {
     this.sleepDisciplineScore = 90,
     this.parentTag,
     List<String>? equippedAssetIds,
+    this.evolvedFromSkillId,
+    this.buffDescription,
+    List<SkillEvolutionOption>? evolutionOptions,
   })  : maxExp = maxExp ?? (level * 100),
-        equippedAssetIds = equippedAssetIds ?? [];
+        equippedAssetIds = equippedAssetIds != null ? List<String>.from(equippedAssetIds) : [],
+        evolutionOptions = evolutionOptions != null ? List<SkillEvolutionOption>.from(evolutionOptions) : [];
 
-  void addExp(int amount) {
-    exp += amount;
+  bool get isEvolved => evolvedFromSkillId != null;
+  bool get canEvolve => !isEvolved && level >= 3 && evolutionOptions.isNotEmpty;
+
+  void addExp(int amount, {bool hasNextDayDisciplineBoost = false}) {
+    final effectiveAmount = hasNextDayDisciplineBoost ? (amount * 1.5).round() : amount;
+    exp += effectiveAmount;
     while (exp >= maxExp) {
       exp -= maxExp;
       level += 1;
@@ -66,6 +123,9 @@ class SkillCard {
     int? sleepDisciplineScore,
     String? parentTag,
     List<String>? equippedAssetIds,
+    String? evolvedFromSkillId,
+    String? buffDescription,
+    List<SkillEvolutionOption>? evolutionOptions,
   }) {
     return SkillCard(
       id: id ?? this.id,
@@ -79,6 +139,9 @@ class SkillCard {
       sleepDisciplineScore: sleepDisciplineScore ?? this.sleepDisciplineScore,
       parentTag: parentTag ?? this.parentTag,
       equippedAssetIds: equippedAssetIds ?? List.from(this.equippedAssetIds),
+      evolvedFromSkillId: evolvedFromSkillId ?? this.evolvedFromSkillId,
+      buffDescription: buffDescription ?? this.buffDescription,
+      evolutionOptions: evolutionOptions ?? List.from(this.evolutionOptions),
     );
   }
 }

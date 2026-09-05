@@ -10,6 +10,7 @@ class SkillDeckScreen extends StatefulWidget {
   final List<InventoryItem> inventoryItems;
   final ValueChanged<SkillCard> onAddSkill;
   final ValueChanged<SkillCard> onTrainSkill;
+  final Function(SkillCard parentSkill, SkillEvolutionOption option)? onEvolveSkill;
 
   const SkillDeckScreen({
     super.key,
@@ -17,6 +18,7 @@ class SkillDeckScreen extends StatefulWidget {
     this.inventoryItems = const [],
     required this.onAddSkill,
     required this.onTrainSkill,
+    this.onEvolveSkill,
   });
 
   @override
@@ -25,6 +27,150 @@ class SkillDeckScreen extends StatefulWidget {
 
 class _SkillDeckScreenState extends State<SkillDeckScreen> {
   CardSuit? _selectedSuit;
+
+  void _showEvolutionDialog(BuildContext context, SkillCard skill) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final theme = ShadTheme.of(ctx);
+        return Dialog(
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFF334155)),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(LucideIcons.flame, color: Colors.amber, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            '技能演化与专精派生',
+                            style: theme.textTheme.h4.copyWith(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(LucideIcons.x, size: 18, color: Colors.grey),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '【${skill.name}】已达到 LV.${skill.level}，满足觉醒条件！请选择一个分支演化为全新高阶技能手牌：',
+                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  ...skill.evolutionOptions.map((opt) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F172A),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.amber.withAlpha(80)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(opt.suit.icon, size: 16, color: opt.suit.color),
+                              const SizedBox(width: 6),
+                              Text(
+                                opt.name,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withAlpha(30),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  '高阶觉醒',
+                                  style: TextStyle(fontSize: 10, color: Colors.amber, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            opt.description,
+                            style: TextStyle(fontSize: 12, color: Colors.grey[300]),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withAlpha(20),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(LucideIcons.zap, size: 12, color: Colors.amber),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    '被动专精: ${opt.buffDescription}',
+                                    style: const TextStyle(fontSize: 11, color: Colors.amber),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber[700],
+                                foregroundColor: Colors.black,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                              ),
+                              icon: const Icon(LucideIcons.sparkles, size: 14),
+                              label: Text(
+                                '演化觉醒【${opt.name}】',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                              ),
+                              onPressed: () {
+                                widget.onEvolveSkill?.call(skill, opt);
+                                Navigator.pop(ctx);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   void _showAddSkillDialog(BuildContext context) {
     final nameCtrl = TextEditingController();
@@ -232,6 +378,7 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                         skill: skill,
                         equippedAssets: skillEquippedAssets,
                         onTrain: () => widget.onTrainSkill(skill),
+                        onEvolve: widget.onEvolveSkill != null ? () => _showEvolutionDialog(context, skill) : null,
                       );
                     },
                   ),

@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:life_poker/main.dart';
+import 'package:life_poker/screens/blackjack_game_screen.dart';
 
 void main() {
   testWidgets('Comprehensive ancestor and interaction test for Life-Poker', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
     // Build our app and trigger a frame.
     await tester.pumpWidget(const LifePokerApp());
     await tester.pumpAndSettle();
@@ -93,7 +98,31 @@ void main() {
     expect(find.widgetWithText(ShadButton, '发牌开局 (下注 50 筹码)'), findsOneWidget);
     await tester.tap(find.widgetWithText(ShadButton, '发牌开局 (下注 50 筹码)'));
     await tester.pumpAndSettle();
-    expect(find.text('Hit (要牌)'), findsOneWidget);
-    expect(find.text('Stand (停牌)'), findsOneWidget);
+    expect(find.byType(BlackjackGameScreen), findsOneWidget);
+    expect(find.textContaining('筹码:'), findsOneWidget);
+
+    // 10. Phase 4: Test 牌桌时间块 睡眠自律连胜与打卡
+    await tester.tap(find.text('牌桌时间块'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('睡眠自律连胜'), findsOneWidget);
+    await tester.tap(find.text('睡眠早报'));
+    await tester.pumpAndSettle();
+    expect(find.text('睡眠纪律打卡与评分'), findsOneWidget);
+    await tester.tap(find.text('确认打卡 (+40 EXP)'));
+    await tester.pumpAndSettle();
+
+    // 11. Phase 4: Test 技能卡组 技能演化派生新牌
+    await tester.tap(find.text('技能卡组'));
+    await tester.pumpAndSettle();
+    expect(find.text('演化派生新牌'), findsOneWidget);
+    await tester.tap(find.text('演化派生新牌'));
+    await tester.pumpAndSettle();
+    expect(find.text('技能演化与专精派生'), findsOneWidget);
+    expect(find.textContaining('演化觉醒【全栈跨端大宗师】'), findsOneWidget);
+    await tester.tap(find.textContaining('演化觉醒【全栈跨端大宗师】'));
+    await tester.pumpAndSettle();
+    // Verify the new skill is generated and displayed
+    expect(find.text('全栈跨端大宗师'), findsOneWidget);
+    expect(find.text('★ 高阶觉醒'), findsOneWidget);
   });
 }

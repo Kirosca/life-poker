@@ -8,6 +8,7 @@ class SkillCardWidget extends StatelessWidget {
   final SkillCard skill;
   final List<InventoryItem> equippedAssets;
   final VoidCallback? onTrain;
+  final VoidCallback? onEvolve;
   final VoidCallback? onTap;
 
   const SkillCardWidget({
@@ -15,6 +16,7 @@ class SkillCardWidget extends StatelessWidget {
     required this.skill,
     this.equippedAssets = const [],
     this.onTrain,
+    this.onEvolve,
     this.onTap,
   });
 
@@ -46,15 +48,34 @@ class SkillCardWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          ShadBadge.secondary(
-            child: Text(
-              'LV.${skill.level}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: suit.color,
-                fontSize: 11,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (skill.isEvolved)
+                Container(
+                  margin: const EdgeInsets.only(right: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withAlpha(30),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.amber.withAlpha(80)),
+                  ),
+                  child: const Text(
+                    '★ 高阶觉醒',
+                    style: TextStyle(fontSize: 10, color: Colors.amber, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ShadBadge.secondary(
+                child: Text(
+                  'LV.${skill.level}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: suit.color,
+                    fontSize: 11,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -69,16 +90,47 @@ class SkillCardWidget extends StatelessWidget {
               ),
             )
           : null,
-       footer: onTrain != null
+       footer: (onTrain != null || (onEvolve != null && skill.canEvolve))
           ? Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: ShadButton.outline(
-                width: double.infinity,
-                size: ShadButtonSize.sm,
-                leading: const Icon(LucideIcons.sparkles, size: 12),
-                onPressed: onTrain,
-                child: const Text('研习 (+25 EXP)', style: TextStyle(fontSize: 11)),
-              ),
+              child: (onEvolve != null && skill.canEvolve)
+                  ? Row(
+                      children: [
+                        if (onTrain != null)
+                          Expanded(
+                            child: ShadButton.outline(
+                              size: ShadButtonSize.sm,
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              leading: const Icon(LucideIcons.sparkles, size: 12),
+                              onPressed: onTrain,
+                              child: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('研习 (+25)', style: TextStyle(fontSize: 11)),
+                              ),
+                            ),
+                          ),
+                        if (onTrain != null) const SizedBox(width: 6),
+                        Expanded(
+                          child: ShadButton(
+                            size: ShadButtonSize.sm,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            leading: const Icon(LucideIcons.flame, size: 12, color: Colors.amber),
+                            onPressed: onEvolve,
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('演化派生新牌', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : ShadButton.outline(
+                      width: double.infinity,
+                      size: ShadButtonSize.sm,
+                      leading: const Icon(LucideIcons.sparkles, size: 12),
+                      onPressed: onTrain,
+                      child: const Text('研习 (+25 EXP)', style: TextStyle(fontSize: 11)),
+                    ),
             )
           : null,
       child: Padding(
@@ -111,6 +163,30 @@ class SkillCardWidget extends StatelessWidget {
               value: skill.progress,
               minHeight: 6,
             ),
+            if (skill.buffDescription != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withAlpha(20),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.amber.withAlpha(60)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.zap, size: 12, color: Colors.amber),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        skill.buffDescription!,
+                        style: const TextStyle(fontSize: 10, color: Colors.amber, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (equippedAssets.isNotEmpty) ...[
               const SizedBox(height: 8),
               Wrap(

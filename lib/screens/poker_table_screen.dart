@@ -10,6 +10,7 @@ class PokerTableScreen extends StatelessWidget {
   final List<EventCard> allEvents;
   final List<SkillCard> allSkills;
   final List<InventoryItem> inventoryItems;
+  final SleepDisciplineState? sleepDiscipline;
   final ValueChanged<EventCard> onToggleEvent;
   final Function(String blockId, EventCard event) onAssignEventToBlock;
   final ValueChanged<EventCard> onRemoveEventFromBlock;
@@ -24,6 +25,7 @@ class PokerTableScreen extends StatelessWidget {
     required this.allEvents,
     required this.allSkills,
     this.inventoryItems = const [],
+    this.sleepDiscipline,
     required this.onToggleEvent,
     required this.onAssignEventToBlock,
     required this.onRemoveEventFromBlock,
@@ -349,6 +351,89 @@ class PokerTableScreen extends StatelessWidget {
             ),
           ),
         ),
+
+        // 睡眠自律次日增益横幅
+        if (sleepDiscipline != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: sleepDiscipline!.isNextDayBoostActive
+                      ? [const Color(0xFF78350F), const Color(0xFF1E293B)]
+                      : [const Color(0xFF1E293B), const Color(0xFF0F172A)],
+                ),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: sleepDiscipline!.isNextDayBoostActive
+                      ? Colors.amber.withAlpha(160)
+                      : const Color(0xFF334155),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: sleepDiscipline!.isNextDayBoostActive
+                          ? Colors.amber.withAlpha(40)
+                          : Colors.blueGrey.withAlpha(40),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      sleepDiscipline!.isNextDayBoostActive ? LucideIcons.zap : LucideIcons.moon,
+                      size: 20,
+                      color: sleepDiscipline!.isNextDayBoostActive ? Colors.amber : Colors.blueGrey[300],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              '🌙 睡眠自律连胜: ${sleepDiscipline!.streakDays} 天',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withAlpha(40),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '自律分: ${sleepDiscipline!.disciplineScore}',
+                                style: const TextStyle(fontSize: 10, color: Colors.lightBlueAccent, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          sleepDiscipline!.isNextDayBoostActive
+                              ? '⚡ 次日充沛状态生效中：今日所有技能研习享 +50% EXP 经验暴击！'
+                              : '今晚保持优质睡眠可激活明日 +50% 全局经验增益。',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: sleepDiscipline!.isNextDayBoostActive ? Colors.amber[200] : Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ShadButton.outline(
+                    size: ShadButtonSize.sm,
+                    onPressed: onSleepCheckIn,
+                    child: const Text('睡眠早报'),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
         // 时间块列表
         ...timeBlocks.map((block) {

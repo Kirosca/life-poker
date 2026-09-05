@@ -3,6 +3,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 import '../models/inventory_item.dart';
 import '../models/codex_entry.dart';
+import '../services/storage_service.dart';
 import 'poker_table_screen.dart';
 import 'task_deck_screen.dart';
 import 'skill_deck_screen.dart';
@@ -35,7 +36,14 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
   // 衣食住行之书 (Phase 3)
   final List<CodexEntry> _codexEntries = CodexEntry.getInitialEntries();
 
-  // 技能卡组 (包含普通技能与特殊睡眠技能卡)
+  // 睡眠自律次日增益状态 (Phase 4)
+  SleepDisciplineState _sleepState = SleepDisciplineState(
+    streakDays: 3,
+    disciplineScore: 92,
+    isNextDayBoostActive: true,
+  );
+
+  // 技能卡组 (包含普通技能与特殊睡眠技能卡，支持分支演化)
   final List<SkillCard> _skills = [
     SkillCard(
       id: 'skill_sleep',
@@ -55,6 +63,22 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       level: 3,
       exp: 140,
       description: '掌握声明式 UI、状态管理与跨平台架构',
+      evolutionOptions: const [
+        SkillEvolutionOption(
+          id: 'evo_flutter_arch',
+          name: '全栈跨端大宗师',
+          description: '融会贯通 Flutter 与高性能后端架构，全天候输出工业级高质量代码。',
+          suit: CardSuit.spades,
+          buffDescription: '黑桃事件点数结算加倍，时间块容量上限 +2',
+        ),
+        SkillEvolutionOption(
+          id: 'evo_flutter_engine',
+          name: '自研渲染引擎专家',
+          description: '深入底层图形管线与 Shader 着色器，驾驭极客级性能优化与黑客美学。',
+          suit: CardSuit.spades,
+          buffDescription: '每日首个技术攻坚事件额外 +100 EXP',
+        ),
+      ],
     ),
     SkillCard(
       id: 'skill_2',
@@ -63,6 +87,22 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       level: 2,
       exp: 80,
       description: '保持高心肺活力与充沛精力储备',
+      evolutionOptions: const [
+        SkillEvolutionOption(
+          id: 'evo_run_marathon',
+          name: '铁人半马巡航者',
+          description: '心肺耐力达到专业长跑水准，全天维持平稳心率与极致抗疲劳。',
+          suit: CardSuit.hearts,
+          buffDescription: '全日时间块疲劳衰减减缓 40%',
+        ),
+        SkillEvolutionOption(
+          id: 'evo_run_strength',
+          name: '高燃体适能先锋',
+          description: '爆发力与全身核心协调性顶峰，快速启动身心进入激昂作战状态。',
+          suit: CardSuit.hearts,
+          buffDescription: '体能与精力类打卡结算经验 +50%',
+        ),
+      ],
     ),
     SkillCard(
       id: 'skill_3',
@@ -71,6 +111,22 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       level: 2,
       exp: 110,
       description: '精炼认知模型，输出高质量思考成果',
+      evolutionOptions: const [
+        SkillEvolutionOption(
+          id: 'evo_reading_curator',
+          name: '思想策展与出版者',
+          description: '融通多学科经典脉络，输出系统化认知专著与开源智慧知识库。',
+          suit: CardSuit.clubs,
+          buffDescription: '完成梅花事件时自动提炼专属认知心智牌',
+        ),
+        SkillEvolutionOption(
+          id: 'evo_reading_polymath',
+          name: '跨界博雅分析家',
+          description: '建立跨领域心智格栅，将认知模型灵活迁移于商业、工程与决策中。',
+          suit: CardSuit.clubs,
+          buffDescription: '研习其他任意技能额外获得 +20% 联动经验',
+        ),
+      ],
     ),
     SkillCard(
       id: 'skill_4',
@@ -79,8 +135,50 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       level: 1,
       exp: 60,
       description: '把控交付节奏，推动产品落地与商业价值',
+      evolutionOptions: const [
+        SkillEvolutionOption(
+          id: 'evo_biz_indie',
+          name: '超级个体产品掌门',
+          description: '具备从0到1闭环孵化产品与商业变现能力，掌握商业杠杆与自由现金流。',
+          suit: CardSuit.diamonds,
+          buffDescription: '方块项目结算获得现金与资源奖励 +25%',
+        ),
+        SkillEvolutionOption(
+          id: 'evo_biz_operator',
+          name: '敏捷交付操盘手',
+          description: '极致把控商业交付节奏与风险边际，消除资源浪费与紧迫危机。',
+          suit: CardSuit.diamonds,
+          buffDescription: '未来紧迫事件倒计时压力扣罚全面豁免',
+        ),
+      ],
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPersistedData();
+  }
+
+  Future<void> _loadPersistedData() async {
+    final loadedSkills = await StorageService.loadSkills();
+    final loadedSleep = await StorageService.loadSleepState();
+    final loadedCash = await StorageService.loadCashBalance();
+    if (mounted) {
+      setState(() {
+        if (loadedSkills != null && loadedSkills.isNotEmpty) {
+          _skills.clear();
+          _skills.addAll(loadedSkills);
+        }
+        if (loadedSleep != null) {
+          _sleepState = loadedSleep;
+        }
+        if (loadedCash != null) {
+          _cashBalance = loadedCash;
+        }
+      });
+    }
+  }
 
   // 时间块骨架 (支持挂载 activeSkillId 技能卡槽)
   final List<TimeBlock> _timeBlocks = [
@@ -200,8 +298,9 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
             final skillIdx = _skills.indexWhere((s) => s.id == targetSkillId);
             if (skillIdx != -1) {
               final prevLevel = _skills[skillIdx].level;
-              _skills[skillIdx].addExp(event.points * 12);
+              _skills[skillIdx].addExp(event.points * 12, hasNextDayDisciplineBoost: _sleepState.isNextDayBoostActive);
               final newLevel = _skills[skillIdx].level;
+              final earnedExp = _sleepState.isNextDayBoostActive ? (event.points * 12 * 1.5).round() : (event.points * 12);
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -209,10 +308,11 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
                   content: Text(
                     newLevel > prevLevel
                         ? '🎉 攻克事件！技能【${_skills[skillIdx].name}】升至 LV.$newLevel！'
-                        : '✨ 攻克【${event.title}】！技能【${_skills[skillIdx].name}】+${event.points * 12} EXP',
+                        : '✨ 攻克【${event.title}】！技能【${_skills[skillIdx].name}】+$earnedExp EXP${_sleepState.isNextDayBoostActive ? " ⚡(含睡眠加成)" : ""}',
                   ),
                 ),
               );
+              StorageService.saveSkills(_skills);
             }
           }
         }
@@ -275,6 +375,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     setState(() {
       _skills.add(skill);
     });
+    StorageService.saveSkills(_skills);
   }
 
   void _trainSkill(SkillCard skill) {
@@ -282,20 +383,63 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
       final idx = _skills.indexWhere((s) => s.id == skill.id);
       if (idx != -1) {
         final prevL = _skills[idx].level;
-        _skills[idx].addExp(25);
+        _skills[idx].addExp(25, hasNextDayDisciplineBoost: _sleepState.isNextDayBoostActive);
         final newL = _skills[idx].level;
+        final expGained = _sleepState.isNextDayBoostActive ? 38 : 25;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
             content: Text(
               newL > prevL
                   ? '👑 突破瓶颈！【${skill.name}】提升至 LV.$newL！'
-                  : '📖 研习专注！【${skill.name}】+25 EXP',
+                  : '📖 研习专注！【${skill.name}】+$expGained EXP${_sleepState.isNextDayBoostActive ? " ⚡(含睡眠次日加成)" : ""}',
             ),
           ),
         );
       }
     });
+    StorageService.saveSkills(_skills);
+  }
+
+  // 技能演化觉醒并派生新技能手牌 (Phase 4)
+  void _evolveSkill(SkillCard parentSkill, SkillEvolutionOption option) {
+    setState(() {
+      final newSkill = SkillCard(
+        id: 'skill_evo_${DateTime.now().millisecondsSinceEpoch}',
+        name: option.name,
+        suit: option.suit,
+        level: 1,
+        exp: 0,
+        maxExp: 150,
+        description: option.description,
+        evolvedFromSkillId: parentSkill.id,
+        buffDescription: option.buffDescription,
+        parentTag: parentSkill.name,
+      );
+      _skills.insert(0, newSkill);
+      parentSkill.evolutionOptions = List<SkillEvolutionOption>.from(parentSkill.evolutionOptions)
+        ..removeWhere((o) => o.id == option.id);
+    });
+    StorageService.saveSkills(_skills);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF78350F),
+        behavior: SnackBarBehavior.floating,
+        content: Row(
+          children: [
+            const Icon(LucideIcons.sparkles, color: Colors.amber),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '🎉 觉醒突破！成功演化出高阶技能牌【${option.name}】！',
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ===================== 【资金与资产背包操作 (Phase 2)】 =====================
@@ -615,10 +759,20 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
             onPressed: () {
               setState(() {
                 sleepSkill.addExp(40);
+                _sleepState = _sleepState.copyWith(
+                  streakDays: _sleepState.streakDays + 1,
+                  isNextDayBoostActive: true,
+                  lastSettlementDate: DateTime.now(),
+                );
               });
+              StorageService.saveSkills(_skills);
+              StorageService.saveSleepState(_sleepState);
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('睡眠纪律打卡成功！【睡眠技能】+40 EXP')),
+                SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  content: Text('🌙 睡眠自律打卡成功！连胜达成 ${_sleepState.streakDays} 天，已激活明日 +50% 全局经验暴击！'),
+                ),
               );
             },
             child: const Text('确认打卡 (+40 EXP)'),
@@ -640,6 +794,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           allEvents: _events,
           allSkills: _skills,
           inventoryItems: _inventoryItems,
+          sleepDiscipline: _sleepState,
           onToggleEvent: _toggleEvent,
           onAssignEventToBlock: _assignEventToBlock,
           onRemoveEventFromBlock: _removeEventFromBlock,
@@ -666,6 +821,7 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           inventoryItems: _inventoryItems,
           onAddSkill: _addSkill,
           onTrainSkill: _trainSkill,
+          onEvolveSkill: _evolveSkill,
         );
         break;
       case 3:
