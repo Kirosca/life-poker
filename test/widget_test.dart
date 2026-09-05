@@ -124,5 +124,22 @@ void main() {
     // Verify the new skill is generated and displayed
     expect(find.text('全栈跨端大宗师'), findsOneWidget);
     expect(find.text('★ 高阶觉醒'), findsOneWidget);
+
+    // 12. Phase 7: Test 技能全景科技树与闪卡图鉴切换
+    expect(find.text('全景科技树'), findsOneWidget);
+    await tester.tap(find.text('全景科技树'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('科技树段位:'), findsOneWidget);
+    expect(find.text('根基核心 (Base Skill)'), findsWidgets);
+    // Tap on a skill node in the tree to open detail inspection dialog
+    await tester.tap(find.text('Flutter & 架构设计').first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('熟练度积累:'), findsOneWidget);
+    await tester.tap(find.text('立即研习 (+25 EXP)'));
+    await tester.pumpAndSettle();
+    // Switch back to 卡牌阵列
+    await tester.tap(find.text('卡牌阵列'));
+    await tester.pumpAndSettle();
+    expect(find.text('核心技能手牌组 (Skill Deck)'), findsOneWidget);
   });
 }

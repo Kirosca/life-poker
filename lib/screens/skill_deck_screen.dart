@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
 import '../widgets/skill_card_widget.dart';
-
+import '../widgets/skill_tech_tree_view.dart';
 import '../models/inventory_item.dart';
 
 class SkillDeckScreen extends StatefulWidget {
@@ -27,6 +27,7 @@ class SkillDeckScreen extends StatefulWidget {
 
 class _SkillDeckScreenState extends State<SkillDeckScreen> {
   CardSuit? _selectedSuit;
+  bool _isTreeView = false;
 
   void _showEvolutionDialog(BuildContext context, SkillCard skill) {
     showDialog(
@@ -287,22 +288,112 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Filter by Suit badges
-          SizedBox(
-            height: 48,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          // 视图模式切换器 (卡牌阵列 vs 全景科技树)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _selectedSuit == null
-                      ? ShadBadge(child: const Text('全部技能'))
-                      : GestureDetector(
-                          onTap: () => setState(() => _selectedSuit = null),
-                          child: ShadBadge.outline(child: const Text('全部技能')),
-                        ),
+                Row(
+                  children: [
+                    const Icon(LucideIcons.sparkles, size: 18, color: Colors.amber),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isTreeView ? '全景技能科技树 (Tech Tree)' : '核心技能手牌组 (Skill Deck)',
+                      style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF334155)),
+                  ),
+                  child: Row(
+                    children: [
+                      InkWell(
+                        onTap: () => setState(() => _isTreeView = false),
+                        borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: !_isTreeView ? const Color(0xFF3B82F6) : Colors.transparent,
+                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(7)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(LucideIcons.layoutGrid, size: 14, color: !_isTreeView ? Colors.white : Colors.grey[400]),
+                              const SizedBox(width: 4),
+                              Text(
+                                '卡牌阵列',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: !_isTreeView ? Colors.white : Colors.grey[400],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => setState(() => _isTreeView = true),
+                        borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _isTreeView ? const Color(0xFF3B82F6) : Colors.transparent,
+                            borderRadius: const BorderRadius.horizontal(right: Radius.circular(7)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(LucideIcons.gitFork, size: 14, color: _isTreeView ? Colors.white : Colors.grey[400]),
+                              const SizedBox(width: 4),
+                              Text(
+                                '全景科技树',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: _isTreeView ? Colors.white : Colors.grey[400],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_isTreeView)
+            Expanded(
+              child: SkillTechTreeView(
+                skills: widget.skills,
+                inventoryItems: widget.inventoryItems,
+                onTrainSkill: widget.onTrainSkill,
+                onEvolveSkill: widget.onEvolveSkill,
+              ),
+            )
+          else ...[
+            // Filter by Suit badges
+            SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _selectedSuit == null
+                        ? ShadBadge(child: const Text('全部技能'))
+                        : GestureDetector(
+                            onTap: () => setState(() => _selectedSuit = null),
+                            child: ShadBadge.outline(child: const Text('全部技能')),
+                          ),
+                  ),
                 ...CardSuit.values.map((s) {
                   final isSelected = _selectedSuit == s;
                   return Padding(
@@ -383,6 +474,7 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                     },
                   ),
           ),
+          ],
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

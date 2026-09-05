@@ -15,6 +15,18 @@ enum CardSuit {
   const CardSuit(this.label, this.symbol, this.domain, this.color, this.icon);
 }
 
+enum CardRarity {
+  common('普通手牌', Color(0xFF94A3B8), LucideIcons.badge),
+  rare('稀有进阶', Color(0xFF38BDF8), LucideIcons.gem),
+  epic('史诗觉醒', Color(0xFFA855F7), LucideIcons.sparkles),
+  legendary('传奇天命', Color(0xFFF59E0B), LucideIcons.crown);
+
+  final String label;
+  final Color color;
+  final IconData icon;
+  const CardRarity(this.label, this.color, this.icon);
+}
+
 class SkillEvolutionOption {
   final String id;
   final String name;
@@ -98,6 +110,13 @@ class SkillCard {
 
   bool get isEvolved => evolvedFromSkillId != null;
   bool get canEvolve => !isEvolved && level >= 3 && evolutionOptions.isNotEmpty;
+
+  CardRarity get rarity {
+    if (level >= 5 || (isEvolved && level >= 3)) return CardRarity.legendary;
+    if (isEvolved) return CardRarity.epic;
+    if (level >= 3) return CardRarity.rare;
+    return CardRarity.common;
+  }
 
   void addExp(int amount, {bool hasNextDayDisciplineBoost = false}) {
     final effectiveAmount = hasNextDayDisciplineBoost ? (amount * 1.5).round() : amount;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../models/poker_card.dart';
-
 import '../models/inventory_item.dart';
+import 'foil_card_container.dart';
 
 class SkillCardWidget extends StatelessWidget {
   final SkillCard skill;
@@ -24,8 +24,9 @@ class SkillCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final suit = skill.suit;
+    final rarity = skill.rarity;
 
-    return ShadCard(
+    final card = ShadCard(
       padding: const EdgeInsets.all(16),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -51,6 +52,26 @@ class SkillCardWidget extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                margin: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: rarity.color.withAlpha(25),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: rarity.color.withAlpha(80)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(rarity.icon, size: 10, color: rarity.color),
+                    const SizedBox(width: 3),
+                    Text(
+                      rarity.label,
+                      style: TextStyle(fontSize: 10, color: rarity.color, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
               if (skill.isEvolved)
                 Container(
                   margin: const EdgeInsets.only(right: 6),
@@ -222,6 +243,11 @@ class SkillCardWidget extends StatelessWidget {
           ],
         ),
       ),
+    );
+
+    return FoilCardContainer(
+      rarity: rarity,
+      child: card,
     );
   }
 }
