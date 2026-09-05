@@ -28,32 +28,30 @@ class SkillCardWidget extends StatelessWidget {
 
     final card = ShadCard(
       padding: const EdgeInsets.all(16),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                Icon(suit.icon, size: 18, color: suit.color),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    skill.name,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.p.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+          Row(
+            children: [
+              Icon(suit.icon, size: 18, color: suit.color),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  skill.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.p.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
+          const SizedBox(height: 6),
           Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                margin: const EdgeInsets.only(right: 6),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: rarity.color.withAlpha(25),
@@ -72,9 +70,9 @@ class SkillCardWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              if (skill.isEvolved)
+              const SizedBox(width: 6),
+              if (skill.isEvolved) ...[
                 Container(
-                  margin: const EdgeInsets.only(right: 6),
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: Colors.amber.withAlpha(30),
@@ -86,6 +84,8 @@ class SkillCardWidget extends StatelessWidget {
                     style: TextStyle(fontSize: 10, color: Colors.amber, fontWeight: FontWeight.bold),
                   ),
                 ),
+                const SizedBox(width: 6),
+              ],
               ShadBadge.secondary(
                 child: Text(
                   'LV.${skill.level}',
@@ -119,38 +119,91 @@ class SkillCardWidget extends StatelessWidget {
                       children: [
                         if (onTrain != null)
                           Expanded(
-                            child: ShadButton.outline(
-                              size: ShadButtonSize.sm,
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              leading: const Icon(LucideIcons.sparkles, size: 12),
-                              onPressed: onTrain,
-                              child: const FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text('研习 (+25)', style: TextStyle(fontSize: 11)),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: onTrain,
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: const Color(0xFF334155)),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(LucideIcons.sparkles, size: 12, color: Colors.white70),
+                                      SizedBox(width: 4),
+                                      Flexible(
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text('研习 (+25)', style: TextStyle(fontSize: 11, color: Colors.white)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         if (onTrain != null) const SizedBox(width: 6),
                         Expanded(
-                          child: ShadButton(
-                            size: ShadButtonSize.sm,
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
-                            leading: const Icon(LucideIcons.flame, size: 12, color: Colors.amber),
-                            onPressed: onEvolve,
-                            child: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text('演化派生新牌', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: onEvolve,
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber[700],
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(LucideIcons.flame, size: 12, color: Colors.black),
+                                    SizedBox(width: 4),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          '演化派生新牌',
+                                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ],
                     )
-                  : ShadButton.outline(
-                      width: double.infinity,
-                      size: ShadButtonSize.sm,
-                      leading: const Icon(LucideIcons.sparkles, size: 12),
-                      onPressed: onTrain,
-                      child: const Text('研习 (+25 EXP)', style: TextStyle(fontSize: 11)),
+                  : Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: onTrain,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: const Color(0xFF334155)),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(LucideIcons.sparkles, size: 12, color: Colors.white70),
+                              SizedBox(width: 6),
+                              Text('研习 (+25 EXP)', style: TextStyle(fontSize: 11, color: Colors.white)),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
             )
           : null,
