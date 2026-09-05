@@ -27,6 +27,7 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
 
   void _showNodeDetailsDialog(BuildContext context, SkillCard skill) {
     final theme = ShadTheme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final equippedAssets = widget.inventoryItems
         .where((i) => i.isAsset && i.boundSkillId == skill.id)
         .toList();
@@ -34,10 +35,13 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: skill.rarity.color.withAlpha(120), width: 1.5),
+          side: BorderSide(
+            color: isDark ? skill.rarity.color.withAlpha(120) : const Color(0xFFE2E8F0),
+            width: 1.5,
+          ),
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 450),
@@ -56,12 +60,14 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
                         const SizedBox(width: 8),
                         Text(
                           skill.name,
-                          style: theme.textTheme.h4.copyWith(color: Colors.white),
+                          style: theme.textTheme.h4.copyWith(
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
                         ),
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(LucideIcons.x, size: 18, color: Colors.grey),
+                      icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.grey : const Color(0xFF64748B)),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -211,16 +217,19 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
   }
 
   Widget _buildSkillNode(SkillCard skill, {bool isChild = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final rarity = skill.rarity;
 
     final content = Container(
       width: isChild ? 240 : 260,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: isChild ? Colors.amber.withAlpha(120) : const Color(0xFF334155),
+          color: isChild
+              ? Colors.amber.withAlpha(120)
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           width: isChild ? 1.5 : 1.0,
         ),
       ),
@@ -237,7 +246,11 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
                   skill.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
                 ),
               ),
               const SizedBox(width: 4),
@@ -302,11 +315,13 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
   }
 
   Widget _buildBranchOptionNode(SkillCard parentSkill, SkillEvolutionOption option) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: 240,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: Colors.amber.withAlpha(160),
@@ -346,26 +361,23 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
             option.description,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 10, color: Colors.grey[400]),
+            style: TextStyle(
+              fontSize: 10,
+              color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+            ),
           ),
           const SizedBox(height: 6),
           SizedBox(
             width: double.infinity,
-            height: 26,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber[700],
-                foregroundColor: Colors.black,
-                padding: EdgeInsets.zero,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              onPressed: () => widget.onEvolveSkill?.call(parentSkill, option),
+            child: ShadButton(
+              size: ShadButtonSize.sm,
+              onPressed: () {
+                widget.onEvolveSkill?.call(parentSkill, option);
+              },
+              backgroundColor: Colors.amber[700],
               child: const Text(
-                '演化觉醒',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                '突破演化',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black),
               ),
             ),
           ),
@@ -376,24 +388,23 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter root skills (not evolved from another skill)
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final rootSkills = widget.skills.where((s) => !s.isEvolved).toList();
     final filteredRoots = _activeSuitFilter == null
         ? rootSkills
         : rootSkills.where((s) => s.suit == _activeSuitFilter).toList();
 
-    // Stats calculation
     final totalSkills = widget.skills.length;
     final evolvedSkillsCount = widget.skills.where((s) => s.isEvolved).length;
     final totalLevels = widget.skills.fold<int>(0, (sum, s) => sum + s.level);
 
-    String masteryTitle = '博雅启蒙者';
-    if (totalLevels >= 25) {
-      masteryTitle = '传奇全栈大师';
-    } else if (totalLevels >= 15) {
-      masteryTitle = '卓越领域学者';
-    } else if (totalLevels >= 8) {
-      masteryTitle = '多维进阶达人';
+    String masteryTitle = '初窥门径';
+    if (totalLevels >= 20) {
+      masteryTitle = '大宗师境界';
+    } else if (totalLevels >= 12) {
+      masteryTitle = '融会贯通';
+    } else if (totalLevels >= 6) {
+      masteryTitle = '登堂入室';
     }
 
     return Column(
@@ -403,11 +414,13 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
           margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+            gradient: LinearGradient(
+              colors: isDark
+                  ? const [Color(0xFF1E293B), Color(0xFF0F172A)]
+                  : const [Color(0xFFFFFFFF), Color(0xFFF1F5F9)],
             ),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF334155)),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ),
           child: Row(
             children: [
@@ -428,7 +441,11 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
                       children: [
                         Text(
                           '科技树段位: $masteryTitle',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Container(
@@ -512,7 +529,7 @@ class _SkillTechTreeViewState extends State<SkillTechTreeView> {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A).withAlpha(180),
+                  color: isDark ? const Color(0xFF0F172A).withAlpha(180) : Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: rootSkill.suit.color.withAlpha(60)),
                 ),

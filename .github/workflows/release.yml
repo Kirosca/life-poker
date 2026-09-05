@@ -5,6 +5,16 @@ on:
     tags:
       - 'v*'
       - '[0-9]+.*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: '发布版本号 (例如 v0.0.4)'
+        required: true
+        default: 'v0.0.4'
+        type: string
+
+env:
+  RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
 
 permissions:
   contents: write
@@ -32,19 +42,32 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      - name: Configure Android Signing Keystore
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "Using keystore from GitHub Secrets"
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+            echo "storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'lifepoker123' }}" > android/key.properties
+            echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD || 'lifepoker123' }}" >> android/key.properties
+            echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS || 'lifepoker' }}" >> android/key.properties
+            echo "storeFile=release.keystore" >> android/key.properties
+          else
+            echo "Using persistent release keystore from repository"
+          fi
+
       - name: Build APK
         run: flutter build apk --release
 
       - name: Prepare APK Asset
         run: |
           mkdir -p release-assets
-          cp build/app/outputs/flutter-apk/app-release.apk release-assets/life-poker-android-${{ github.ref_name }}.apk
+          cp build/app/outputs/flutter-apk/app-release.apk release-assets/life-poker-android-${{ env.RELEASE_TAG }}.apk
 
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: release-assets/life-poker-android-${{ github.ref_name }}.apk
+          path: release-assets/life-poker-android-${{ env.RELEASE_TAG }}.apk
 
   build-windows:
     name: Build Windows Desktop
@@ -69,13 +92,13 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release-assets -Force
-          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "release-assets\life-poker-windows-${{ github.ref_name }}.zip" -Force
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath "release-assets\life-poker-windows-${{ env.RELEASE_TAG }}.zip" -Force
 
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-zip
-          path: release-assets/life-poker-windows-${{ github.ref_name }}.zip
+          path: release-assets/life-poker-windows-${{ env.RELEASE_TAG }}.zip
 
   build-web:
     name: Build Web App
@@ -99,13 +122,13 @@ jobs:
       - name: Package Web App
         run: |
           mkdir -p release-assets
-          cd build/web && zip -r ../../release-assets/life-poker-web-${{ github.ref_name }}.zip .
+          cd build/web && zip -r ../../release-assets/life-poker-web-${{ env.RELEASE_TAG }}.zip .
 
       - name: Upload Web Artifact
         uses: actions/upload-artifact@v4
         with:
           name: web-zip
-          path: release-assets/life-poker-web-${{ github.ref_name }}.zip
+          path: release-assets/life-poker-web-${{ env.RELEASE_TAG }}.zip
 
   publish-release:
     name: Publish GitHub Release
@@ -127,7 +150,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ github.ref_name }}
+          name: Release ${{ env.RELEASE_TAG }}
+          tag_name: ${{ env.RELEASE_TAG }}
           draft: false
           prerelease: false
           generate_release_notes: true

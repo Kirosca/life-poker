@@ -50,13 +50,16 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
-      body: SafeArea(
+    final theme = ShadTheme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: SafeArea(
         child: Column(
           children: [
-            _buildTreasuryHeader(),
-            _buildTabSelector(),
+            _buildTreasuryHeader(theme, isDark),
+            _buildTabSelector(theme, isDark),
             Expanded(
               child: _buildCurrentTabContent(),
             ),
@@ -66,12 +69,12 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
     );
   }
 
-  Widget _buildTreasuryHeader() {
+  Widget _buildTreasuryHeader(ShadThemeData theme, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF18181B),
-        border: Border(bottom: BorderSide(color: Colors.white.withAlpha(25))),
+        color: isDark ? const Color(0xFF18181B) : Colors.white,
+        border: Border(bottom: BorderSide(color: isDark ? Colors.white.withAlpha(25) : const Color(0xFFE2E8F0))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,24 +85,31 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEAB308).withAlpha(40),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(LucideIcons.coins, color: Color(0xFFFBBF24), size: 22),
+                    child: const Icon(LucideIcons.coins, color: Color(0xFFFBBF24), size: 18),
                   ),
-                  const SizedBox(width: 12),
-                  const Column(
+                  const SizedBox(width: 10),
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '金库与资产背包',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF09090B),
+                        ),
                       ),
                       Text(
                         'Life Deck Vault & Equipment',
-                        style: TextStyle(fontSize: 11, color: Color(0xFFA1A1AA)),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF71717A),
+                        ),
                       ),
                     ],
                   ),
@@ -109,14 +119,14 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                 children: [
                   ShadButton.outline(
                     size: ShadButtonSize.sm,
-                    leading: const Icon(LucideIcons.receipt, size: 14),
+                    leading: const Icon(LucideIcons.receipt, size: 13),
                     onPressed: _openAddTransactionModal,
                     child: const Text('记一笔'),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   ShadButton(
                     size: ShadButtonSize.sm,
-                    leading: const Icon(LucideIcons.plus, size: 14),
+                    leading: const Icon(LucideIcons.plus, size: 13),
                     onPressed: _openAddItemModal,
                     child: const Text('添装备/耗材'),
                   ),
@@ -124,7 +134,7 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           // 资产概览小卡片
           Row(
             children: [
@@ -134,24 +144,27 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                   amount: '¥${widget.cashBalance.toStringAsFixed(0)}',
                   icon: LucideIcons.wallet,
                   color: const Color(0xFF10B981),
+                  isDark: isDark,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildMetricCard(
                   title: '资产估值 (Assets)',
                   amount: '¥${_totalAssetValue.toStringAsFixed(0)}',
                   icon: LucideIcons.shieldCheck,
                   color: const Color(0xFF3B82F6),
+                  isDark: isDark,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildMetricCard(
-                  title: '总净资产 (Net Worth)',
+                  title: '总净资产 (Net)',
                   amount: '¥${_netWorth.toStringAsFixed(0)}',
                   icon: LucideIcons.gem,
                   color: const Color(0xFFF59E0B),
+                  isDark: isDark,
                 ),
               ),
             ],
@@ -166,35 +179,39 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
     required String amount,
     required IconData icon,
     required Color color,
+    required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF27272A).withAlpha(160),
+        color: isDark ? const Color(0xFF27272A).withAlpha(160) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withAlpha(20)),
+        border: Border.all(color: isDark ? Colors.white.withAlpha(20) : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 13, color: color),
-              const SizedBox(width: 6),
+              Icon(icon, size: 12, color: color),
+              const SizedBox(width: 5),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFFA1A1AA)),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF64748B),
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             amount,
             style: TextStyle(
-              fontSize: 17,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               color: color,
               letterSpacing: -0.5,
@@ -205,7 +222,7 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
     );
   }
 
-  Widget _buildTabSelector() {
+  Widget _buildTabSelector(ShadThemeData theme, bool isDark) {
     final tabs = [
       {'label': '🛡️ 固定装备 (${widget.inventoryItems.where((i) => i.isAsset).length})', 'index': 0},
       {'label': '🧪 消耗品 (${widget.inventoryItems.where((i) => i.isConsumable).length})', 'index': 1},
@@ -213,34 +230,40 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
     ];
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF18181B).withAlpha(180),
-        border: Border(bottom: BorderSide(color: Colors.white.withAlpha(20))),
+        color: isDark ? const Color(0xFF18181B).withAlpha(180) : Colors.white,
+        border: Border(bottom: BorderSide(color: isDark ? Colors.white.withAlpha(20) : const Color(0xFFE2E8F0))),
       ),
       child: Row(
         children: tabs.map((tab) {
           final isSelected = _selectedTabIndex == tab['index'];
           return Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 8),
             child: InkWell(
               borderRadius: BorderRadius.circular(6),
               onTap: () => setState(() => _selectedTabIndex = tab['index'] as int),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
+                  color: isSelected
+                      ? (isDark ? Colors.white : theme.colorScheme.primary)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: isSelected ? Colors.transparent : Colors.white.withAlpha(20),
+                    color: isSelected
+                        ? Colors.transparent
+                        : (isDark ? Colors.white.withAlpha(20) : const Color(0xFFE2E8F0)),
                   ),
                 ),
                 child: Text(
                   tab['label'] as String,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.black : const Color(0xFFA1A1AA),
+                    color: isSelected
+                        ? (isDark ? Colors.black : Colors.white)
+                        : (isDark ? const Color(0xFFA1A1AA) : const Color(0xFF64748B)),
                   ),
                 ),
               ),
@@ -266,34 +289,35 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
 
   // 1. 固定资产装备视图
   Widget _buildAssetsView() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final assets = widget.inventoryItems.where((i) => i.isAsset).toList();
 
     if (assets.isEmpty) {
-      return _buildEmptyState('暂无固定资产装备', '点击右上角「添装备/耗材」登记你的电脑、耳机或生产力装备');
+      return _buildEmptyState('暂无固定资产装备', '点击右上角「添装备/耗材」登记你的电脑、耳机或生产力装备', isDark);
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       itemCount: assets.length,
       itemBuilder: (context, index) {
         final asset = assets[index];
         final boundSkill = widget.skillCards.where((s) => s.id == asset.boundSkillId).firstOrNull;
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: 10),
           child: ShadCard(
             title: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: const Color(0xFF3B82F6).withAlpha(35),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFF3B82F6).withAlpha(70)),
                   ),
-                  child: Icon(asset.icon, color: const Color(0xFF60A5FA), size: 20),
+                  child: Icon(asset.icon, color: const Color(0xFF60A5FA), size: 18),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -302,21 +326,28 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                         children: [
                           Text(
                             asset.name,
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF09090B),
+                            ),
                           ),
                           const SizedBox(width: 8),
                           ShadBadge.secondary(
                             child: Text(
                               '原值 ¥${asset.value.toStringAsFixed(0)}',
-                              style: const TextStyle(fontSize: 11),
+                              style: const TextStyle(fontSize: 10),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         asset.description,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFFA1A1AA)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF64748B),
+                        ),
                       ),
                     ],
                   ),
@@ -336,12 +367,12 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 // 增益效果
                 if (asset.buffEffect != null && asset.buffEffect!.isNotEmpty)
                   Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFF10B981).withAlpha(25),
                       borderRadius: BorderRadius.circular(6),
@@ -349,15 +380,15 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                     ),
                     child: Text(
                       asset.buffEffect!,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF34D399), fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF34D399), fontWeight: FontWeight.w500),
                     ),
                   ),
 
                 // 装备状态与绑定技能
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF27272A).withAlpha(140),
+                    color: isDark ? const Color(0xFF27272A).withAlpha(140) : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -365,16 +396,18 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(LucideIcons.link, size: 14, color: Color(0xFFA1A1AA)),
-                          const SizedBox(width: 8),
+                          Icon(LucideIcons.link, size: 13, color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF64748B)),
+                          const SizedBox(width: 6),
                           Text(
                             boundSkill != null
                                 ? '已装配到: [${boundSkill.suit.symbol} ${boundSkill.name}]'
                                 : '未装备到技能牌 (闲置)',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: boundSkill != null ? FontWeight.w600 : FontWeight.normal,
-                              color: boundSkill != null ? const Color(0xFF60A5FA) : const Color(0xFF71717A),
+                              color: boundSkill != null
+                                  ? const Color(0xFF60A5FA)
+                                  : (isDark ? const Color(0xFF71717A) : const Color(0xFF94A3B8)),
                             ),
                           ),
                         ],
@@ -408,34 +441,35 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
 
   // 2. 消耗品背包视图
   Widget _buildConsumablesView() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final consumables = widget.inventoryItems.where((i) => i.isConsumable).toList();
 
     if (consumables.isEmpty) {
-      return _buildEmptyState('消耗品背包为空', '点击右上角「添装备/耗材」登记咖啡豆、补剂或草稿纸');
+      return _buildEmptyState('消耗品背包为空', '点击右上角「添装备/耗材」登记咖啡豆、补剂或草稿纸', isDark);
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       itemCount: consumables.length,
       itemBuilder: (context, index) {
         final item = consumables[index];
         final isLowStock = item.quantity <= 3;
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.only(bottom: 10),
           child: ShadCard(
             title: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF59E0B).withAlpha(35),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFF59E0B).withAlpha(70)),
                   ),
-                  child: Icon(item.icon, color: const Color(0xFFFBBF24), size: 20),
+                  child: Icon(item.icon, color: const Color(0xFFFBBF24), size: 18),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -444,7 +478,11 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                         children: [
                           Text(
                             item.name,
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : const Color(0xFF09090B),
+                            ),
                           ),
                           const SizedBox(width: 8),
                           if (isLowStock)
@@ -453,10 +491,13 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Text(
                         item.description,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFFA1A1AA)),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF64748B),
+                        ),
                       ),
                     ],
                   ),
@@ -468,7 +509,10 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
               children: [
                 Text(
                   '单价约 ¥${item.value.toStringAsFixed(1)} / ${item.unit}',
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF71717A)),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? const Color(0xFF71717A) : const Color(0xFF94A3B8),
+                  ),
                 ),
                 ShadButton.ghost(
                   size: ShadButtonSize.sm,
@@ -483,8 +527,8 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                 const SizedBox(height: 8),
                 if (item.buffEffect != null && item.buffEffect!.isNotEmpty)
                   Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFF10B981).withAlpha(25),
                       borderRadius: BorderRadius.circular(6),
@@ -492,15 +536,15 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                     ),
                     child: Text(
                       '效果: ${item.buffEffect!}',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF34D399), fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF34D399), fontWeight: FontWeight.w500),
                     ),
                   ),
 
                 // 库存计步器与单价
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF27272A).withAlpha(140),
+                    color: isDark ? const Color(0xFF27272A).withAlpha(140) : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -509,14 +553,20 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('当前存量', style: TextStyle(fontSize: 11, color: Color(0xFFA1A1AA))),
+                          Text(
+                            '当前存量',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF64748B),
+                            ),
+                          ),
                           const SizedBox(height: 2),
                           Text(
                             '${item.quantity} ${item.unit}',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: isLowStock ? const Color(0xFFEF4444) : Colors.white,
+                              color: isLowStock ? const Color(0xFFEF4444) : (isDark ? Colors.white : const Color(0xFF09090B)),
                             ),
                           ),
                         ],
@@ -525,8 +575,8 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                         children: [
                           // 扣减 1
                           IconButton(
-                            icon: const Icon(LucideIcons.minus, size: 16),
-                            color: Colors.white70,
+                            icon: const Icon(LucideIcons.minus, size: 14),
+                            color: isDark ? Colors.white70 : const Color(0xFF64748B),
                             onPressed: item.quantity > 0
                                 ? () {
                                     widget.onUpdateItem(item.copyWith(quantity: item.quantity - 1));
@@ -534,26 +584,30 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
                                 : null,
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF18181B),
+                              color: isDark ? const Color(0xFF18181B) : Colors.white,
                               borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.white.withAlpha(20)),
+                              border: Border.all(color: isDark ? Colors.white.withAlpha(20) : const Color(0xFFCBD5E1)),
                             ),
                             child: Text(
                               '${item.quantity}',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : const Color(0xFF09090B),
+                              ),
                             ),
                           ),
                           // 增加 1
                           IconButton(
-                            icon: const Icon(LucideIcons.plus, size: 16),
-                            color: Colors.white70,
+                            icon: const Icon(LucideIcons.plus, size: 14),
+                            color: isDark ? Colors.white70 : const Color(0xFF64748B),
                             onPressed: () {
                               widget.onUpdateItem(item.copyWith(quantity: item.quantity + 1));
                             },
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           // 快捷在牌桌打出消耗 1 提示
                           ShadButton.secondary(
                             size: ShadButtonSize.sm,
@@ -585,12 +639,13 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
 
   // 3. 财务账单流水视图
   Widget _buildTransactionsView() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (widget.transactions.isEmpty) {
-      return _buildEmptyState('暂无记账明细', '点击右上角「记一笔」记录你的主业收入或补给消费');
+      return _buildEmptyState('暂无记账明细', '点击右上角「记一笔」记录你的主业收入或补给消费', isDark);
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       itemCount: widget.transactions.length,
       itemBuilder: (context, index) {
         final tx = widget.transactions[index];
@@ -612,12 +667,12 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
         }
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF18181B),
+            color: isDark ? const Color(0xFF18181B) : Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white.withAlpha(20)),
+            border: Border.all(color: isDark ? Colors.white.withAlpha(20) : const Color(0xFFE2E8F0)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -625,25 +680,32 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: typeColor.withAlpha(30),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Icon(icon, color: typeColor, size: 16),
+                    child: Icon(icon, color: typeColor, size: 15),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         tx.title,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF09090B),
+                        ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         '${tx.date.month}月${tx.date.day}日 · ${tx.category ?? "日常"}',
-                        style: const TextStyle(fontSize: 11, color: Color(0xFFA1A1AA)),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF71717A),
+                        ),
                       ),
                     ],
                   ),
@@ -652,7 +714,7 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
               Text(
                 '$prefix¥${tx.amount.toStringAsFixed(2)}',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: typeColor,
                 ),
@@ -664,21 +726,28 @@ class _VaultInventoryScreenState extends State<VaultInventoryScreen> {
     );
   }
 
-  Widget _buildEmptyState(String title, String subtitle) {
+  Widget _buildEmptyState(String title, String subtitle, bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(LucideIcons.box, size: 48, color: Color(0xFF52525B)),
-          const SizedBox(height: 12),
+          Icon(LucideIcons.box, size: 40, color: isDark ? const Color(0xFF52525B) : const Color(0xFF94A3B8)),
+          const SizedBox(height: 10),
           Text(
             title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white70),
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white70 : const Color(0xFF334155),
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF71717A)),
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark ? const Color(0xFF71717A) : const Color(0xFF64748B),
+            ),
           ),
         ],
       ),

@@ -14,16 +14,16 @@ void main() {
     await tester.pumpWidget(const LifePokerApp());
     await tester.pumpAndSettle();
 
-    // 1. Verify title and 6 tabs are displayed
+    // 1. Verify title and 6 destinations are displayed in NavigationRail
     expect(find.text('Life-Poker'), findsOneWidget);
-    expect(find.text('牌桌时间块'), findsOneWidget);
-    expect(find.text('事件卡库'), findsOneWidget);
-    expect(find.text('技能卡组'), findsOneWidget);
-    expect(find.text('金库资产'), findsOneWidget);
-    expect(find.text('衣食住行书'), findsOneWidget);
-    expect(find.text('21点小游戏'), findsOneWidget);
+    expect(find.text('牌桌'), findsWidgets);
+    expect(find.text('事件'), findsWidgets);
+    expect(find.text('技能'), findsWidgets);
+    expect(find.text('金库'), findsWidgets);
+    expect(find.text('准则'), findsWidgets);
+    expect(find.text('21点'), findsWidgets);
 
-    // 2. Test 牌桌时间块: Nightly Prep dialog
+    // 2. Test 牌桌: Nightly Prep dialog
     await tester.tap(find.text('晚间备战 / 模板'));
     await tester.pumpAndSettle();
     expect(find.text('晚间备战明日 (Nightly Prep)'), findsOneWidget);
@@ -31,7 +31,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 3. Test 事件卡库: Open add event sheet, verify Slider and Dropdown
-    await tester.tap(find.text('事件卡库'));
+    await tester.tap(find.text('事件').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('新增事件卡'));
     await tester.pumpAndSettle();
@@ -41,7 +41,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 4. Test 技能卡组: Open add skill sheet
-    await tester.tap(find.text('技能卡组'));
+    await tester.tap(find.text('技能').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('解锁技能'));
     await tester.pumpAndSettle();
@@ -50,8 +50,8 @@ void main() {
     Navigator.of(tester.element(find.text('解锁技能手牌 (Skill Card)'))).pop();
     await tester.pumpAndSettle();
 
-    // 5. Test 金库资产: Open "记一笔"
-    await tester.tap(find.text('金库资产'));
+    // 5. Test 金库: Open "记一笔"
+    await tester.tap(find.text('金库').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('记一笔'));
     await tester.pumpAndSettle();
@@ -60,7 +60,7 @@ void main() {
     await tester.tap(find.text('取消'));
     await tester.pumpAndSettle();
 
-    // 6. Test 金库资产: Open "添装备/耗材"
+    // 6. Test 金库: Open "添装备/耗材"
     await tester.tap(find.text('添装备/耗材'));
     await tester.pumpAndSettle();
     expect(find.text('登记新装备 / 补给耗材'), findsOneWidget);
@@ -68,15 +68,15 @@ void main() {
     await tester.tap(find.text('取消'));
     await tester.pumpAndSettle();
 
-    // 7. Test 金库资产: Open "更换装配"
+    // 7. Test 金库: Open "更换装配"
     await tester.tap(find.text('更换装配').first);
     await tester.pumpAndSettle();
     expect(find.text('取消'), findsOneWidget);
     await tester.tap(find.text('取消'));
     await tester.pumpAndSettle();
 
-    // 8. Test 衣食住行书 (Phase 3 Codex Book)
-    await tester.tap(find.text('衣食住行书'));
+    // 8. Test 准则 (Phase 3 Codex Book)
+    await tester.tap(find.text('准则').first);
     await tester.pumpAndSettle();
     expect(find.text('衣食住行之书 (Life Codex)'), findsOneWidget);
     expect(find.text('极简胶囊衣橱与穿搭矩阵'), findsOneWidget);
@@ -92,7 +92,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 9. Test 21点小游戏: Play a round
-    await tester.tap(find.text('21点小游戏'));
+    await tester.tap(find.text('21点').first);
     await tester.pumpAndSettle();
     expect(find.text('Blackjack 21点休闲小游戏'), findsOneWidget);
     expect(find.widgetWithText(ShadButton, '发牌开局 (下注 50 筹码)'), findsOneWidget);
@@ -101,8 +101,8 @@ void main() {
     expect(find.byType(BlackjackGameScreen), findsOneWidget);
     expect(find.textContaining('筹码:'), findsOneWidget);
 
-    // 10. Phase 4: Test 牌桌时间块 睡眠自律连胜与打卡
-    await tester.tap(find.text('牌桌时间块'));
+    // 10. Phase 4: Test 牌桌 睡眠自律连胜与打卡
+    await tester.tap(find.text('牌桌').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('睡眠自律连胜'), findsOneWidget);
     await tester.tap(find.text('睡眠早报'));
@@ -111,8 +111,8 @@ void main() {
     await tester.tap(find.text('确认打卡 (+40 EXP)'));
     await tester.pumpAndSettle();
 
-    // 11. Phase 4: Test 技能卡组 技能演化派生新牌
-    await tester.tap(find.text('技能卡组'));
+    // 11. Phase 4: Test 技能 技能演化派生新牌
+    await tester.tap(find.text('技能').first);
     await tester.pumpAndSettle();
     expect(find.text('演化派生新牌'), findsOneWidget);
     await tester.tap(find.text('演化派生新牌'));

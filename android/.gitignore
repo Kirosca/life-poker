@@ -12,3 +12,8 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Allow Life-Poker persistent release keystore for CI/CD builds
+!key.properties
+!app/release.keystore
+

@@ -408,11 +408,11 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
         children: [
           // 搜索框
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+            padding: const EdgeInsets.fromLTRB(14, 6, 14, 4),
             child: ShadInput(
               controller: _searchCtrl,
               placeholder: const Text('搜索事件手牌...'),
-              leading: const Icon(LucideIcons.search, size: 16),
+              leading: const Icon(LucideIcons.search, size: 15),
               trailing: _search.isNotEmpty
                   ? ShadIconButton.ghost(
                       icon: const Icon(LucideIcons.x, size: 14),
@@ -428,7 +428,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
 
           // 状态筛选 Tab
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -447,10 +447,10 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
 
           // 花色筛选
           SizedBox(
-            height: 44,
+            height: 38,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 6),
@@ -520,7 +520,7 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
+                    padding: const EdgeInsets.fromLTRB(14, 4, 14, 80),
                     itemCount: filtered.length,
                     itemBuilder: (ctx, i) {
                       final event = filtered[i];
@@ -549,9 +549,9 @@ class _TaskDeckScreenState extends State<TaskDeckScreen> {
                       final bool isUrgent = event.isUrgent && !event.isCompleted;
 
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(bottom: 6),
                         child: ShadCard(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(10),
                           title: Row(
                             children: [
                               ShadCheckbox(

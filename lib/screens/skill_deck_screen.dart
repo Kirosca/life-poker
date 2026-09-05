@@ -34,11 +34,13 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
       context: context,
       builder: (ctx) {
         final theme = ShadTheme.of(ctx);
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+
         return Dialog(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFF334155)),
+            side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 500),
@@ -57,12 +59,14 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                           const SizedBox(width: 8),
                           Text(
                             '技能演化与专精派生',
-                            style: theme.textTheme.h4.copyWith(color: Colors.white),
+                            style: theme.textTheme.h4.copyWith(
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
                           ),
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(LucideIcons.x, size: 18, color: Colors.grey),
+                        icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.grey : const Color(0xFF64748B)),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
@@ -70,7 +74,10 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                   const SizedBox(height: 8),
                   Text(
                     '【${skill.name}】已达到 LV.${skill.level}，满足觉醒条件！请选择一个分支演化为全新高阶技能手牌：',
-                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   ...skill.evolutionOptions.map((opt) {
@@ -78,7 +85,7 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.amber.withAlpha(80)),
                       ),
@@ -91,10 +98,10 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                               const SizedBox(width: 6),
                               Text(
                                 opt.name,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                                 ),
                               ),
                               const Spacer(),
@@ -114,7 +121,10 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                           const SizedBox(height: 6),
                           Text(
                             opt.description,
-                            style: TextStyle(fontSize: 12, color: Colors.grey[300]),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.grey[300] : const Color(0xFF475569),
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Container(
@@ -468,12 +478,12 @@ class _SkillDeckScreenState extends State<SkillDeckScreen> {
                     ),
                   )
                 : GridView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                    padding: const EdgeInsets.fromLTRB(14, 6, 14, 80),
                     gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 340,
-                      childAspectRatio: 0.72,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
+                      maxCrossAxisExtent: 280,
+                      childAspectRatio: 0.85,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
                     ),
                     itemCount: filteredSkills.length,
                     itemBuilder: (ctx, i) {

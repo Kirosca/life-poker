@@ -290,9 +290,9 @@ class PokerTableScreen extends StatelessWidget {
       children: [
         // 顶部备战与警报横幅
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
           child: ShadCard(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -355,7 +355,7 @@ class PokerTableScreen extends StatelessWidget {
         // 睡眠自律次日增益横幅
         if (sleepDiscipline != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(

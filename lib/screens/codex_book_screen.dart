@@ -59,38 +59,40 @@ class _CodexBookScreenState extends State<CodexBookScreen> {
     final sopCount = allInDomain.where((e) => e.level == RuleLevel.sop).length;
     final insightCount = allInDomain.where((e) => e.level == RuleLevel.insight).length;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Row(
-          children: [
-            Icon(LucideIcons.bookOpen, size: 20),
-            SizedBox(width: 8),
-            Text('衣食住行之书 (Life Codex)', style: TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ShadButton.outline(
-              size: ShadButtonSize.sm,
-              leading: const Icon(LucideIcons.plus, size: 14),
-              onPressed: _openAddEntryDialog,
-              child: const Text('编纂新准则'),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 1000),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top Header Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(LucideIcons.bookOpen, size: 20),
+                        SizedBox(width: 8),
+                        Text('衣食住行之书 (Life Codex)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    ShadButton.outline(
+                      size: ShadButtonSize.sm,
+                      leading: const Icon(LucideIcons.plus, size: 14),
+                      onPressed: _openAddEntryDialog,
+                      child: const Text('编纂新准则'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
                 // 1. Four Volumes Tab Bar
                 _buildVolumeTabs(theme),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
                 // 2. Volume Header & Stats Banner
                 _buildVolumeBanner(theme, allInDomain.length, ironCount, sopCount, insightCount),

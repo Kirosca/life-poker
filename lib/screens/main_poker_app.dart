@@ -816,9 +816,93 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
     );
   }
 
+  void _openMoreModulesSheet(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final isDark = widget.isDarkMode;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF18181B) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.layoutGrid, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          '扩展系统与玩法',
+                          style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(LucideIcons.x, size: 16),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(LucideIcons.bookOpen, color: Colors.blue, size: 20),
+                  ),
+                  title: const Text('衣食住行之书 (Life Codex)', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('生活准则与习惯 SOP 指南', style: TextStyle(fontSize: 12)),
+                  trailing: _currentTabIndex == 4 ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() => _currentTabIndex = 4);
+                  },
+                ),
+                const SizedBox(height: 4),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(LucideIcons.gamepad2, color: Colors.amber, size: 20),
+                  ),
+                  title: const Text('21点休闲小游戏 (Blackjack)', style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('极简二十一点纸牌策略小游戏', style: TextStyle(fontSize: 12)),
+                  trailing: _currentTabIndex == 5 ? const Icon(LucideIcons.check, color: Colors.amber) : null,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() => _currentTabIndex = 5);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final isDesktop = MediaQuery.of(context).size.width >= 768;
 
     Widget body;
     switch (_currentTabIndex) {
@@ -919,37 +1003,83 @@ class _MainPokerAppScreenState extends State<MainPokerAppScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: body,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentTabIndex,
-        onDestinationSelected: (idx) => setState(() => _currentTabIndex = idx),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(LucideIcons.layoutGrid),
-            label: '牌桌时间块',
-          ),
-          NavigationDestination(
-            icon: Icon(LucideIcons.listTodo),
-            label: '事件卡库',
-          ),
-          NavigationDestination(
-            icon: Icon(LucideIcons.sparkles),
-            label: '技能卡组',
-          ),
-          NavigationDestination(
-            icon: Icon(LucideIcons.coins),
-            label: '金库资产',
-          ),
-          NavigationDestination(
-            icon: Icon(LucideIcons.bookOpen),
-            label: '衣食住行书',
-          ),
-          NavigationDestination(
-            icon: Icon(LucideIcons.gamepad2),
-            label: '21点小游戏',
-          ),
-        ],
-      ),
+      body: isDesktop
+          ? Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _currentTabIndex,
+                  onDestinationSelected: (idx) => setState(() => _currentTabIndex = idx),
+                  labelType: NavigationRailLabelType.all,
+                  backgroundColor: widget.isDarkMode ? const Color(0xFF0F172A) : Colors.white,
+                  minWidth: 72,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.layoutGrid),
+                      label: Text('牌桌'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.listTodo),
+                      label: Text('事件'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.sparkles),
+                      label: Text('技能'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.coins),
+                      label: Text('金库'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.bookOpen),
+                      label: Text('准则'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.gamepad2),
+                      label: Text('21点'),
+                    ),
+                  ],
+                ),
+                const VerticalDivider(width: 1, thickness: 1),
+                Expanded(child: body),
+              ],
+            )
+          : body,
+      bottomNavigationBar: isDesktop
+          ? null
+          : NavigationBar(
+              selectedIndex: _currentTabIndex < 4 ? _currentTabIndex : 4,
+              onDestinationSelected: (idx) {
+                if (idx == 4) {
+                  _openMoreModulesSheet(context);
+                } else {
+                  setState(() => _currentTabIndex = idx);
+                }
+              },
+              destinations: [
+                const NavigationDestination(
+                  icon: Icon(LucideIcons.layoutGrid),
+                  label: '牌桌',
+                ),
+                const NavigationDestination(
+                  icon: Icon(LucideIcons.listTodo),
+                  label: '事件',
+                ),
+                const NavigationDestination(
+                  icon: Icon(LucideIcons.sparkles),
+                  label: '技能',
+                ),
+                const NavigationDestination(
+                  icon: Icon(LucideIcons.coins),
+                  label: '金库',
+                ),
+                NavigationDestination(
+                  icon: const Icon(LucideIcons.ellipsis),
+                  label: _currentTabIndex == 4
+                      ? '准则'
+                      : (_currentTabIndex == 5 ? '21点' : '更多'),
+                ),
+              ],
+            ),
     );
   }
 }

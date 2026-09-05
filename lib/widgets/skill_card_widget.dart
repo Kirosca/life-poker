@@ -23,11 +23,17 @@ class SkillCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final suit = skill.suit;
     final rarity = skill.rarity;
 
+    final trainBtnBorder = isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+    final trainBtnBg = isDark ? Colors.transparent : const Color(0xFFF1F5F9);
+    final trainBtnTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final trainBtnIconColor = isDark ? Colors.white70 : const Color(0xFF64748B);
+
     final card = ShadCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -49,10 +55,13 @@ class SkillCardWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Row(
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
                   color: rarity.color.withAlpha(25),
                   borderRadius: BorderRadius.circular(4),
@@ -70,10 +79,9 @@ class SkillCardWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 6),
-              if (skill.isEvolved) ...[
+              if (skill.isEvolved)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                   decoration: BoxDecoration(
                     color: Colors.amber.withAlpha(30),
                     borderRadius: BorderRadius.circular(4),
@@ -84,8 +92,6 @@ class SkillCardWidget extends StatelessWidget {
                     style: TextStyle(fontSize: 10, color: Colors.amber, fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(width: 6),
-              ],
               ShadBadge.secondary(
                 child: Text(
                   'LV.${skill.level}',
@@ -113,7 +119,7 @@ class SkillCardWidget extends StatelessWidget {
           : null,
        footer: (onTrain != null || (onEvolve != null && skill.canEvolve))
           ? Padding(
-              padding: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.only(top: 8),
               child: (onEvolve != null && skill.canEvolve)
                   ? Row(
                       children: [
@@ -127,18 +133,19 @@ class SkillCardWidget extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFF334155)),
+                                    color: trainBtnBg,
+                                    border: Border.all(color: trainBtnBorder),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(LucideIcons.sparkles, size: 12, color: Colors.white70),
-                                      SizedBox(width: 4),
+                                      Icon(LucideIcons.sparkles, size: 12, color: trainBtnIconColor),
+                                      const SizedBox(width: 4),
                                       Flexible(
                                         child: FittedBox(
                                           fit: BoxFit.scaleDown,
-                                          child: Text('研习 (+25)', style: TextStyle(fontSize: 11, color: Colors.white)),
+                                          child: Text('研习 (+25)', style: TextStyle(fontSize: 11, color: trainBtnTextColor)),
                                         ),
                                       ),
                                     ],
@@ -189,17 +196,18 @@ class SkillCardWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFF334155)),
+                            color: trainBtnBg,
+                            border: Border.all(color: trainBtnBorder),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(LucideIcons.sparkles, size: 12, color: Colors.white70),
-                              SizedBox(width: 6),
-                              Text('研习 (+25 EXP)', style: TextStyle(fontSize: 11, color: Colors.white)),
+                              Icon(LucideIcons.sparkles, size: 12, color: trainBtnIconColor),
+                              const SizedBox(width: 6),
+                              Text('研习 (+25 EXP)', style: TextStyle(fontSize: 11, color: trainBtnTextColor)),
                             ],
                           ),
                         ),
@@ -208,7 +216,7 @@ class SkillCardWidget extends StatelessWidget {
             )
           : null,
       child: Padding(
-        padding: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.only(top: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

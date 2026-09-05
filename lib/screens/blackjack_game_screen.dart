@@ -127,37 +127,38 @@ class _BlackjackGameScreenState extends State<BlackjackGameScreen> {
         ? _calculateHand(_dealerHand)
         : (_dealerHand.isNotEmpty ? _dealerHand[0].value : 0);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Row(
-          children: [
-            Icon(LucideIcons.gamepad2, size: 20),
-            SizedBox(width: 8),
-            Text('Blackjack 21点休闲小游戏', style: TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ShadBadge.secondary(
-              child: Row(
-                children: [
-                  const Icon(LucideIcons.coins, size: 14, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  Text('筹码: $_chips', style: const TextStyle(fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Center(
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Center(
         child: SingleChildScrollView(
-          child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
-            padding: const EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(LucideIcons.gamepad2, size: 20),
+                        SizedBox(width: 8),
+                        Text('Blackjack 21点休闲小游戏', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    ShadBadge.secondary(
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.coins, size: 14, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text('筹码: $_chips', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
                 // Dealer Section
                 ShadCard(
                   padding: const EdgeInsets.all(16),

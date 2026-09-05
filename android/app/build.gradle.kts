@@ -4,6 +4,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+import java.util.Properties
+import java.io.FileInputStream
+
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.kirosca.life_poker"
     compileSdk = flutter.compileSdkVersion
@@ -29,11 +38,31 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val keyStoreFile = if (file("release.keystore").exists()) {
+                file("release.keystore")
+            } else {
+                keystoreProperties.getProperty("storeFile")?.let { file(it) }
+            }
+
+            if (keyStoreFile != null && keyStoreFile.exists()) {
+                storeFile = keyStoreFile
+                storePassword = keystoreProperties.getProperty("storePassword") ?: "lifepoker123"
+                keyAlias = keystoreProperties.getProperty("keyAlias") ?: "lifepoker"
+                keyPassword = keystoreProperties.getProperty("keyPassword") ?: "lifepoker123"
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            val releaseConfig = signingConfigs.findByName("release")
+            if (releaseConfig != null && releaseConfig.storeFile?.exists() == true) {
+                signingConfig = releaseConfig
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 }

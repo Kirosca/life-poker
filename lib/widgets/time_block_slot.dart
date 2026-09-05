@@ -45,9 +45,9 @@ class TimeBlockSlot extends StatelessWidget {
     final bool isSleepBlock = equippedSkill?.isSleepSkill ?? false;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ShadCard(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         title: Row(
           children: [
             Icon(block.icon, size: 18, color: theme.colorScheme.primary),
@@ -84,13 +84,13 @@ class TimeBlockSlot extends StatelessWidget {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.only(top: 12),
+          padding: const EdgeInsets.only(top: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ===================== 【槽位 1：主打技能卡槽】 =====================
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
@@ -465,30 +465,38 @@ class TimeBlockSlot extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: available.map((item) {
                     final bool alreadyUsed = block.usedConsumableIds.contains(item.id);
+                    final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF27272A).withAlpha(140),
+                        color: isDark ? const Color(0xFF27272A).withAlpha(140) : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white.withAlpha(20)),
+                        border: Border.all(color: isDark ? Colors.white.withAlpha(20) : const Color(0xFFE2E8F0)),
                       ),
                       child: Row(
                         children: [
-                          Icon(item.icon, color: const Color(0xFFFBBF24), size: 20),
-                          const SizedBox(width: 12),
+                          Icon(item.icon, color: const Color(0xFFFBBF24), size: 18),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   item.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: isDark ? Colors.white : const Color(0xFF09090B),
+                                  ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '存量: ${item.quantity} ${item.unit} · ${item.buffEffect ?? "提神增益"}',
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFFA1A1AA)),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF64748B),
+                                  ),
                                 ),
                               ],
                             ),
